@@ -1,0 +1,9 @@
+content     fontfinder    chrome/content/
+
+overlay chrome://browser/content/browser.xul chrome://fontfinder/content/fontfinder.xul
+
+overlay	chrome://messenger/content/mailWindowOverlay.xul	chrome://fontfinder/content/fontfinder-mail.xul
+overlay	chrome://messenger/content/messengercompose/messengercompose.xul	chrome://fontfinder/content/fontfinder-mail.xul
+skin fontfinder classic/1.0 chrome/skin/
+
+style chrome://browser/content/browser.xul chrome://fontfinder/skin/fontfinder.css

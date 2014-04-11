@@ -1,0 +1,10 @@
+#fontfinder_statusbar {
+    background:transparent url("chrome://fontfinder/skin/ff-off.png") no-repeat;
+}
+#fontfinder_statusbar.on {
+    background:#fff url("chrome://fontfinder/skin/ff-on.png") no-repeat;
+}
+
+.fontfinder-icon {
+	list-style-image: url("chrome://fontfinder/skin/ff-on.png");
+}

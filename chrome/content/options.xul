@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<prefwindow 
+    id="fontfinder-prefwindow"
+    title="FontFinder Preferences"
+    xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+	<prefpane label="FontFinder Preferences">
+		<preferences>
+			<preference id="fontfinder-statusbar-toggle" 
+				name="extensions.fontfinder@bendodson.com.statusbar" type="bool"
+			/>
+			<preference id="fontfinder-contextmenu-toggle"
+				name="extensions.fontfinder@bendodson.com.contextmenu" type="bool"
+			/>
+		</preferences>
+		
+		<groupbox>
+			<caption label="Settings"/>
+			<grid>
+				<columns>
+					<column flex="4"/>
+					<column flex="1"/>
+				</columns>
+				<rows>
+					<row>
+						<checkbox id="statusbar" preference="fontfinder-statusbar-toggle" label="Show statusbar"/>
+					</row>
+					<row>
+						<checkbox id="contextmenu" preference="fontfinder-contextmenu-toggle" label="Show context menu"/>
+					</row>
+				</rows>
+			</grid>
+		</groupbox>	
+	</prefpane>
+</prefwindow>
