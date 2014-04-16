@@ -12,7 +12,7 @@
       <Description>
         <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
         <em:minVersion>1.5</em:minVersion>
-        <em:maxVersion>31.0</em:maxVersion>
+        <em:maxVersion>32.0</em:maxVersion>
       </Description>
     </em:targetApplication>
     
@@ -41,9 +41,11 @@
     <em:creator>Ben Dodson</em:creator>
     <em:contributor>Eric Caron (Status bar option)</em:contributor>
     <em:contributor>Jake Smith (Status bar option)</em:contributor>
+    <em:contributor>Andy Portmen</em:contributor>
 
     <em:iconURL>chrome://fontfinder/skin/32.png</em:iconURL>
-    <em:homepageURL>http://bendodson.com/extensions/</em:homepageURL>
+    <em:icon64URL>chrome://myext/skin/64.png</em:icon64URL>
+    <em:homepageURL>http://add0n.com/font-finder.html</em:homepageURL>
     <em:optionsURL>chrome://fontfinder/content/options.xul</em:optionsURL>    
   </Description>      
 </RDF>

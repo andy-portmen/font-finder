@@ -3,19 +3,18 @@
 <overlay id="fontfinder" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
 	<script type="application/x-javascript" src="chrome://fontfinder/content/fontfinder.js" />
-	<statusbar id="status-bar">
-		<statusbarpanel id="fontfinder_statusbar_outer" insertbefore="statusbar-display">
-			<box id="fontfinder_statusbar" context="fontfinder-popup" 
-				title="FontFinder On" width="22" height="15" tooltiptext="FontFinder"
-				onclick="fontFinder.toggleStatusBar(event);"/>
-		</statusbarpanel>
-	</statusbar>
+	<toolbarpalette id="BrowserToolbarPalette">
+		<toolbarbutton class="toolbarbutton-1 chromeclass-toolbar-additional" 
+			id="fontfinder_statusbar"
+			label="FontFinder" 
+			tooltiptext="FontFinder"
+      context="fontfinder-popup"
+			onclick="fontFinder.toggleStatusBar(event);">
+		</toolbarbutton>
+	</toolbarpalette>
 	
 	<popupset>
 		<menupopup id="fontfinder-popup">
-			<menuitem label="Disable icon" onclick="if(confirm('Are you sure?')){fontFinder.disableStatusBar();alert('Statusbar can be re-enabled through the FontFinder options in Add-Ons');}"
-			/>	
-			<menuseparator/>
 			<menuitem label="Analyze selection" 	oncommand="if(fontFinder.analyzeSelection()){alert(fontFinder.namespace.allInfo);}"
 			/>
 			<menu label="Copy element's">

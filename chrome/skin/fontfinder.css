@@ -1,10 +1,22 @@
 #fontfinder_statusbar {
-    background:transparent url("chrome://fontfinder/skin/ff-off.png") no-repeat;
+  list-style-image: url("toolbar.png");
+  -moz-image-region: rect(0, 32px, 16px, 16px);
 }
-#fontfinder_statusbar.on {
-    background:#fff url("chrome://fontfinder/skin/ff-on.png") no-repeat;
+#fontfinder_statusbar[active="true"] {
+  -moz-image-region: rect(0, 16px, 16px, 0);
+}
+
+#fontfinder_statusbar[cui-areatype="menu-panel"],
+toolbarpaletteitem[place="palette"] > #fontfinder_statusbar {
+  -moz-image-region: rect(16px, 32px, 48px, 0);
+}
+
+#fontfinder_statusbar[cui-areatype="menu-panel"][active="true"],
+toolbarpaletteitem[place="palette"] > #fontfinder_statusbar[active="true"] {
+  -moz-image-region: rect(48px, 32px, 80px, 0);
 }
 
 .fontfinder-icon {
-	list-style-image: url("chrome://fontfinder/skin/ff-on.png");
+  list-style-image: url("toolbar.png");
+  -moz-image-region: rect(0, 32px, 16px, 16px);
 }

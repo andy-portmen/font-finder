@@ -7,9 +7,6 @@
 
 	<prefpane label="FontFinder Preferences">
 		<preferences>
-			<preference id="fontfinder-statusbar-toggle" 
-				name="extensions.fontfinder@bendodson.com.statusbar" type="bool"
-			/>
 			<preference id="fontfinder-contextmenu-toggle"
 				name="extensions.fontfinder@bendodson.com.contextmenu" type="bool"
 			/>
@@ -23,9 +20,6 @@
 					<column flex="1"/>
 				</columns>
 				<rows>
-					<row>
-						<checkbox id="statusbar" preference="fontfinder-statusbar-toggle" label="Show statusbar"/>
-					</row>
 					<row>
 						<checkbox id="contextmenu" preference="fontfinder-contextmenu-toggle" label="Show context menu"/>
 					</row>
