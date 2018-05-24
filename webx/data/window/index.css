@@ -1,0 +1,44 @@
+body {
+  font-family: arial,sans-serif;
+  color: #222;
+  font-size: 13px;
+  overflow: auto;
+}
+table {
+  width: 100%;
+}
+table td:first-child {
+  width: 100px;
+  font-weight: bold;
+}
+ul {
+  list-style-type: none;
+}
+li:nth-child(odd) {
+  background-color: #f5f5f5;
+}
+li:hover {
+  background-color: #ebf2fc;
+}
+li {
+  color: #d13333;
+  display: flex;
+  align-items: center;
+}
+li a,
+li span {
+  color: #222;
+  flex: 1;
+  padding: 0 5px;
+}
+li div {
+  border: solid 1px #000;
+  display: inline-block;
+  width: 24px;
+  height: 7px;
+}
+p {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

@@ -1,0 +1,58 @@
+{
+  "name": "Font Finder",
+  "short_name": "iffinder",
+  "description": "An easy-to-use font inspector to get CSS styles of the selected element",
+  "author": "Andy Portmen",
+  "version": "0.1.9",
+  "manifest_version": 2,
+  "permissions": [
+    "storage",
+    "tabs",
+    "<all_urls>",
+    "contextMenus"
+  ],
+  "background": {
+    "persistent": false,
+    "scripts": [
+      "common.js"
+    ]
+  },
+  "browser_action":{
+    "default_title": "Click once to enable the inspector, then move your mouse over the element. Click the ESC key to release the inspector",
+    "default_icon": {
+      "16": "data/icons/16.png",
+      "18": "data/icons/18.png",
+      "19": "data/icons/19.png",
+      "32": "data/icons/32.png",
+      "36": "data/icons/36.png",
+      "38": "data/icons/38.png",
+      "48": "data/icons/48.png",
+      "64": "data/icons/64.png",
+      "128": "data/icons/128.png"
+    }
+  },
+  "content_scripts": [{
+    "matches": ["<all_urls>"],
+    "js": ["data/inject/inject.js"],
+    "run_at": "document_start",
+    "all_frames": true,
+    "match_about_blank": true
+  }],
+  "homepage_url": "http://add0n.com/font-finder.html",
+  "icons": {
+    "16": "data/icons/16.png",
+    "18": "data/icons/18.png",
+    "19": "data/icons/19.png",
+    "32": "data/icons/32.png",
+    "36": "data/icons/36.png",
+    "38": "data/icons/38.png",
+    "48": "data/icons/48.png",
+    "64": "data/icons/64.png",
+    "128": "data/icons/128.png"
+  },
+  "applications": {
+    "gecko": {
+      "id": "{a658a273-612e-489e-b4f1-5344e672f4f5}"
+    }
+  }
+}
