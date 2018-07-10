@@ -14,8 +14,10 @@ function getFont(fonts) {
     return rect.width === ref.width && rect.height === ref.height;
   });
   document.body.removeChild(node);
-  return rtn.shift() || 'System Default' ;
+  return rtn.shift() || 'System Default';
 }
+
+window.aElement = window.aElement || document.activeElement;
 
 var style = window.getComputedStyle(window.aElement);
 

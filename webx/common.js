@@ -17,14 +17,28 @@ var actions = {
       'runAt': 'document_start',
       'allFrames': false,
       'code': '!!window.div'
-    }, (arr) => {
+    }, arr => {
       const lastError = chrome.runtime.lastError;
       if (lastError) {
-        window.alert(lastError.message);
+        return window.alert(lastError.message);
       }
       const [r] = arr;
       // inject select.js
       if (!r) {
+        // change icon
+        chrome.browserAction.setIcon({
+          tabId: tab.id,
+          path: {
+            '16': 'data/icons/inspect/16.png',
+            '18': 'data/icons/inspect/18.png',
+            '19': 'data/icons/inspect/19.png',
+            '32': 'data/icons/inspect/32.png',
+            '36': 'data/icons/inspect/36.png',
+            '38': 'data/icons/inspect/38.png',
+            '48': 'data/icons/inspect/48.png',
+            '64': 'data/icons/inspect/64.png'
+          }
+        });
         chrome.tabs.insertCSS(tab.id, {
           'runAt': 'document_start',
           'allFrames': true,
@@ -52,7 +66,7 @@ var actions = {
       }
       // release select.js
       else {
-        chrome.tabs.sendMessage(tab.id, 'release');
+        actions.release(tab);
       }
     });
   },
@@ -62,6 +76,22 @@ var actions = {
       'frameId': info.frameId,
       'file': '/data/inject/analyze.js'
     });
+  },
+  release: tab => {
+    chrome.browserAction.setIcon({
+      tabId: tab.id,
+      path: {
+        '16': 'data/icons/16.png',
+        '18': 'data/icons/18.png',
+        '19': 'data/icons/19.png',
+        '32': 'data/icons/32.png',
+        '36': 'data/icons/36.png',
+        '38': 'data/icons/38.png',
+        '48': 'data/icons/48.png',
+        '64': 'data/icons/64.png'
+      }
+    });
+    chrome.tabs.sendMessage(tab.id, 'release');
   }
 };
 
@@ -74,10 +104,46 @@ var actions = {
       documentUrlPatterns: ['*://*/*']
     });
     chrome.contextMenus.create({
+      id: 'copy',
+      title: 'Copy Font Details',
+      contexts: ['selection'],
+      documentUrlPatterns: ['*://*/*']
+    });
+    chrome.contextMenus.create({
+      id: 'replace',
+      title: 'Replace Font with',
+      contexts: ['selection'],
+      documentUrlPatterns: ['*://*/*']
+    });
+    chrome.contextMenus.create({
       id: 'page',
       title: 'Inspect Font',
       contexts: ['page'],
       documentUrlPatterns: ['*://*/*']
+    });
+    chrome.contextMenus.create({
+      id: 'find',
+      title: 'Find Fonts in this Frame',
+      contexts: ['page'],
+      documentUrlPatterns: ['*://*/*']
+    });
+    chrome.storage.local.get({
+      mode: 'window'
+    }, prefs => {
+      chrome.contextMenus.create({
+        id: 'mode:window',
+        title: 'Open in Window mode',
+        contexts: ['browser_action'],
+        type: 'radio',
+        checked: prefs.mode === 'window'
+      });
+      chrome.contextMenus.create({
+        id: 'mode:embed',
+        title: 'Open in Embedded mode',
+        contexts: ['browser_action'],
+        type: 'radio',
+        checked: prefs.mode !== 'window'
+      });
     });
   };
   if (isFirefox) {
@@ -90,11 +156,80 @@ var actions = {
 }
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
-  if (info.menuItemId === 'selection') {
+  if (info.menuItemId.startsWith('mode:')) {
+    chrome.storage.local.set({
+      mode: info.menuItemId.replace('mode:', '')
+    });
+  }
+  else if (info.menuItemId === 'selection') {
     actions.selection(tab, info);
   }
   else if (info.menuItemId === 'page') {
     actions.page(tab, info);
+  }
+  else if (info.menuItemId === 'copy') {
+    chrome.tabs.executeScript(tab.id, {
+      frameId: info.frameId,
+      matchAboutBlank: true,
+      runAt: 'document_start',
+      code: `{
+        if (window.aElement) {
+          const o = window.getComputedStyle(window.aElement);
+          'font-family: ' + o.getPropertyValue('font-family') + '\\n' +
+          'font-size: ' + o.getPropertyValue('font-size') + '\\n' +
+          'font-style: ' + o.getPropertyValue('font-style') + '\\n' +
+          'font-variant-caps: ' + o.getPropertyValue('font-variant-caps') + '\\n' +
+          'font-variant-east-asian: ' + o.getPropertyValue('font-variant-east-asian') + '\\n' +
+          'font-variant-ligatures: ' + o.getPropertyValue('font-variant-ligatures') + '\\n' +
+          'font-variant-numeric: ' + o.getPropertyValue('font-variant-numeric') + '\\n' +
+          'font-weight: ' + o.getPropertyValue('font-weight')
+        }
+        else {
+          'Please refresh this tab and retry'
+        }
+      }`
+    }, r => {
+      document.oncopy = e => {
+        e.clipboardData.setData('text/plain', 'Font Details:\n\n' + r[0]);
+        e.preventDefault();
+      };
+      document.execCommand('copy', false, null);
+    });
+  }
+  else if (info.menuItemId === 'find') {
+    chrome.tabs.executeScript(tab.id, {
+      frameId: info.frameId,
+      matchAboutBlank: true,
+      runAt: 'document_start',
+      code: `{
+        const es = [...document.body.getElementsByTagName('*')];
+        const names = es.map(e => window.getComputedStyle(e).getPropertyValue('font-family').split(',')
+          .map(s => s.toLowerCase().replace(/^\\s+|\\s+$/g, '').replace(/['"]/g, ''))
+        )
+        alert([].concat(...names).filter((s, i, l) => l.indexOf(s) === i).join(', '));
+      }`
+    });
+  }
+  else if ( info.menuItemId === 'replace') {
+    chrome.tabs.executeScript(tab.id, {
+      frameId: info.frameId,
+      matchAboutBlank: true,
+      runAt: 'document_start',
+      code: `{
+        if (window.aElement) {
+          const name = window.prompt(
+            'Enter the new font name',
+            window.getComputedStyle(window.aElement).getPropertyValue('font-family')
+          );
+          if (name) {
+            window.aElement.style['font-family'] = name;
+          }
+        }
+        else {
+          alert('Please refresh this tab and retry');
+        }
+      }`
+    });
   }
 });
 
@@ -104,39 +239,64 @@ chrome.browserAction.onClicked.addListener(tab => actions.page(tab, {
 
 chrome.runtime.onMessage.addListener((request, sender) => {
   if (request.cmd === 'release') {
-    chrome.tabs.sendMessage(sender.tab.id, 'release');
+    actions.release(sender.tab);
   }
   else if (request.cmd === 'analyze') {
     actions.selection(sender.tab, sender);
   }
   else if (request.cmd === 'analyzed') {
     //
-    chrome.tabs.sendMessage(sender.tab.id, 'release');
+    actions.release(sender.tab);
     //
     request.url = sender.tab.url;
     analyzed.push(request);
     //
     chrome.runtime.sendMessage('close-inspector');
     //
-    chrome.windows.getCurrent(win => {
-      request.id = win.id;
-      chrome.storage.local.get({
-        width: 500,
-        height: 600,
-        left: win.left + Math.round((win.width - 500) / 2),
-        top: win.top + Math.round((win.height - 600) / 2)
-      }, prefs => {
-        chrome.windows.create({
-          url: chrome.extension.getURL('data/window/index.html'),
-          type: 'panel',
-          left: prefs.left,
-          top: prefs.top,
-          width: Math.max(prefs.width, 200),
-          height: Math.max(prefs.height, 200)
-        }, win => isFirefox && window.setTimeout(() => chrome.windows.update(win.id, {
-          width: win.width + 1
-        }), 0));
-      });
+    chrome.storage.local.get({
+      width: 500,
+      height: 600,
+      mode: 'window'
+    }, prefs => {
+      if (prefs.mode === 'window') {
+        chrome.windows.getCurrent(win => {
+          request.id = win.id;
+          const left = win.left + Math.round((win.width - 500) / 2);
+          const top = win.top + Math.round((win.height - 600) / 2);
+          chrome.windows.create({
+            url: chrome.extension.getURL('data/window/index.html'),
+            type: 'panel',
+            left,
+            top,
+            width: Math.max(prefs.width, 200),
+            height: Math.max(prefs.height, 200)
+          }, win => isFirefox && window.setTimeout(() => chrome.windows.update(win.id, {
+            width: win.width + 2
+          }), 0));
+        });
+      }
+      else {
+        chrome.tabs.executeScript(sender.tab.id, {
+          runAt: 'document_start',
+          code: `{
+            [...document.querySelectorAll('#font-finder-embedded-div')].forEach(d => d.remove());
+            const div = document.createElement('div');
+            div.id = 'font-finder-embedded-div';
+            div.style = 'position: absolute; left: 0; top: 0; width: 100%; height: 100%;' +
+              'background-color: rgba(0, 0, 0, 0.3); z-index: 2147483647;' +
+              'display: flex; align-items: center; justify-content: center;';
+
+            const iframe = document.createElement('iframe');
+            iframe.src = '${chrome.extension.getURL('data/window/index.html?mode=embed')}';
+            iframe.style = 'width: 500px; height: 600px; border: none; background-color: #fff;'
+            div.appendChild(iframe);
+
+            div.addEventListener('click', () => div.remove());
+
+            document.documentElement.appendChild(div);
+          }`
+        });
+      }
     });
   }
 });
@@ -145,7 +305,7 @@ chrome.runtime.onMessage.addListener((request, sender) => {
 chrome.storage.local.get({
   'version': null,
   'faqs': true,
-  'last-update': 0,
+  'last-update': 0
 }, prefs => {
   const version = chrome.runtime.getManifest().version;
 

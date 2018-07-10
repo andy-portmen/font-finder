@@ -1,5 +1,8 @@
 'use strict';
 
+// hide the embedded div
+[...document.querySelectorAll('#font-finder-embedded-div')].forEach(d => d.remove());
+
 var div = document.createElement('div');
 div.setAttribute('class', 'iffselector');
 document.body.appendChild(div);

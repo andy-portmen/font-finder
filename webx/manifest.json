@@ -1,15 +1,15 @@
 {
   "name": "Font Finder",
-  "short_name": "iffinder",
   "description": "An easy-to-use font inspector to get CSS styles of the selected element",
   "author": "Andy Portmen",
-  "version": "0.1.9",
+  "version": "0.2.1",
   "manifest_version": 2,
   "permissions": [
     "storage",
     "tabs",
     "<all_urls>",
-    "contextMenus"
+    "contextMenus",
+    "clipboardWrite"
   ],
   "background": {
     "persistent": false,
@@ -50,6 +50,9 @@
     "64": "data/icons/64.png",
     "128": "data/icons/128.png"
   },
+  "web_accessible_resources": [
+    "data/window/index.html"
+  ],
   "applications": {
     "gecko": {
       "id": "{a658a273-612e-489e-b4f1-5344e672f4f5}"
