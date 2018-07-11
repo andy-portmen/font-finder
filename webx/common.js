@@ -237,12 +237,15 @@ chrome.browserAction.onClicked.addListener(tab => actions.page(tab, {
   frameId: 0
 }));
 
-chrome.runtime.onMessage.addListener((request, sender) => {
+chrome.runtime.onMessage.addListener((request, sender, respond) => {
   if (request.cmd === 'release') {
     actions.release(sender.tab);
   }
   else if (request.cmd === 'analyze') {
     actions.selection(sender.tab, sender);
+  }
+  else if (request.cmd === 'get') {
+    respond(analyzed.shift());
   }
   else if (request.cmd === 'analyzed') {
     //
@@ -264,7 +267,7 @@ chrome.runtime.onMessage.addListener((request, sender) => {
           const left = win.left + Math.round((win.width - 500) / 2);
           const top = win.top + Math.round((win.height - 600) / 2);
           chrome.windows.create({
-            url: chrome.extension.getURL('data/window/index.html'),
+            url: chrome.extension.getURL('data/window/index.html?mode=window'),
             type: 'panel',
             left,
             top,
@@ -282,7 +285,7 @@ chrome.runtime.onMessage.addListener((request, sender) => {
             [...document.querySelectorAll('#font-finder-embedded-div')].forEach(d => d.remove());
             const div = document.createElement('div');
             div.id = 'font-finder-embedded-div';
-            div.style = 'position: absolute; left: 0; top: 0; width: 100%; height: 100%;' +
+            div.style = 'position: fixed; left: 0; top: 0; width: 100%; height: 100%;' +
               'background-color: rgba(0, 0, 0, 0.3); z-index: 2147483647;' +
               'display: flex; align-items: center; justify-content: center;';
 
@@ -294,6 +297,7 @@ chrome.runtime.onMessage.addListener((request, sender) => {
             div.addEventListener('click', () => div.remove());
 
             document.documentElement.appendChild(div);
+            ''
           }`
         });
       }

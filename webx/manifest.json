@@ -2,7 +2,7 @@
   "name": "Font Finder",
   "description": "An easy-to-use font inspector to get CSS styles of the selected element",
   "author": "Andy Portmen",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "manifest_version": 2,
   "permissions": [
     "storage",
