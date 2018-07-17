@@ -92,6 +92,12 @@ var actions = {
       }
     });
     chrome.tabs.sendMessage(tab.id, 'release');
+    chrome.tabs.executeScript(tab.id, {
+      runAt: 'document_start',
+      code: `
+        [...document.querySelectorAll('#font-finder-embedded-div')].forEach(d => d.remove());
+      `
+    });
   }
 };
 

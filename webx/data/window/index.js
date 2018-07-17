@@ -53,3 +53,12 @@ if (location.search.indexOf('mode=window') !== -1) {
     };
   });
 }
+
+window.focus();
+document.addEventListener('keydown', ({key}) => {
+  if (key === 'Escape' || key === 'Esc') {
+    chrome.runtime.sendMessage({
+      cmd: 'release'
+    });
+  }
+});
