@@ -247,6 +247,18 @@ chrome.runtime.onMessage.addListener((request, sender, respond) => {
   if (request.cmd === 'release') {
     actions.release(sender.tab);
   }
+  else if (request.cmd === 'open') {
+    chrome.tabs.create({
+      url: request.url,
+      windowId: request.windowId
+    });
+  }
+  else if (request.cmd === 'percent') {
+    chrome.browserAction.setBadgeText({
+      tabId: sender.tab.id,
+      text: request.done ? '' : request.value
+    });
+  }
   else if (request.cmd === 'analyze') {
     actions.selection(sender.tab, sender);
   }
@@ -263,8 +275,8 @@ chrome.runtime.onMessage.addListener((request, sender, respond) => {
     chrome.runtime.sendMessage('close-inspector');
     //
     chrome.storage.local.get({
-      width: 500,
-      height: 600,
+      width: 600,
+      height: 650,
       mode: 'window'
     }, prefs => {
       if (prefs.mode === 'window') {
@@ -297,7 +309,7 @@ chrome.runtime.onMessage.addListener((request, sender, respond) => {
 
             const iframe = document.createElement('iframe');
             iframe.src = '${chrome.extension.getURL('data/window/index.html?mode=embed')}';
-            iframe.style = 'width: 500px; height: 600px; border: none; background-color: #fff;'
+            iframe.style = 'width: 600px; height: 650px; border: none; background-color: #fff;'
             div.appendChild(iframe);
 
             div.addEventListener('click', () => div.remove());

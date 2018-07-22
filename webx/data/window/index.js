@@ -14,9 +14,25 @@ chrome.runtime.sendMessage({
   document.querySelector('[data-obj=url]').textContent = analyzed.url;
   for (const e of Object.keys(analyzed.getComputedStyle)) {
     const element = document.querySelector(`[data-obj="${e}"]`);
-    if (element) {
+    if (element && e === 'font-family-rendered') {
+      analyzed.getComputedStyle[e].forEach(([fontname, percent]) => {
+        const div = document.createElement('div');
+        const a = document.createElement('a');
+        a.textContent = fontname;
+        a.dataset.fontname = fontname;
+        a.dataset.cmd = 'open';
+        a.href = '#';
+        const span = document.createElement('span');
+        span.textContent = percent + '%';
+        div.appendChild(a);
+        div.appendChild(span);
+        element.appendChild(div);
+      });
+    }
+    else if (element) {
       element.textContent = analyzed.getComputedStyle[e];
     }
+
     if (e.indexOf('color') !== -1) {
       const hex = document.querySelector(`[data-obj="${e}-hex"]`);
       if (hex) {
@@ -29,11 +45,19 @@ chrome.runtime.sendMessage({
     }
   }
 
+  if (analyzed.complex) {
+    document.getElementById('msg').textContent = 'A complex element is selected';
+  }
+  else {
+    document.getElementById('msg').remove();
+  }
+
   document.addEventListener('click', ({target}) => {
     const cmd = target.dataset.cmd;
     if (cmd === 'open') {
-      chrome.tabs.create({
-        url: 'https://www.fonts.com/search/all-fonts?ShowAllFonts=All&searchtext=' + target.textContent,
+      chrome.runtime.sendMessage({
+        cmd: 'open',
+        url: 'https://www.fonts.com/search/all-fonts?ShowAllFonts=All&searchtext=' + target.dataset.fontname,
         windowId: analyzed.id
       });
     }
