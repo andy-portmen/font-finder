@@ -10,13 +10,12 @@ var baseFonts = ['Andale Mono', 'Arial', 'Arial Black', 'Arnoldboecklin',
   'Menlo', 'Monaco', 'New Century Schoolbook', 'Oldtown', 'Palatino',
   'Palatino Linotype', 'Parkavenue', 'Tahoma', 'Times', 'Times New Roman',
   'Trebuchet MS', 'Verdana', 'Zapf Chancery', 'cursive', 'fantasy', 'monospace',
-  'sans-serif', 'serif'
+  'sans-serif', 'serif', 'Times Roman'
 ];
 
 function getFont(fonts, content = 'QQwWeErRtTyYuUiIoOpP1!2@3#4$5%6^7&8*9(0)<>.-_') {
   // this is the maximum length
-  content = content.substr(0, 100);
-
+  content = content.substr(0, 100).split('').filter(a => a.trim());
   const rtn = {};
 
   const node = document.createElement('span');
@@ -35,17 +34,28 @@ function getFont(fonts, content = 'QQwWeErRtTyYuUiIoOpP1!2@3#4$5%6^7&8*9(0)<>.-_
 
     // check system fonts fists as if a font is not
     // available, a system font will be used to cover it
-    for (const font of [...baseFonts, ...fonts]) {
+    for (const font of ['System Default', ...fonts]) {
       node.style.fontFamily = font;
       const rect = node.getBoundingClientRect();
       if (rect.width === ref.width && rect.height === ref.height) {
         rtn[index] = font;
+        // if 'System Default' matches, it means the font stack is not being rendered, try the default fonts
+        if (font === 'System Default') {
+          for (const font of baseFonts) {
+            if (rect.width === ref.width && rect.height === ref.height) {
+              rtn[index] = font;
+            }
+          }
+        }
         return;
       }
     }
     rtn[index] = 'none';
   };
-  content.split('').forEach(detect);
+
+  console.log(rtn);
+
+  content.forEach(detect);
   document.body.removeChild(node);
 
   const percent = {};
@@ -66,10 +76,12 @@ var style = window.getComputedStyle(window.aElement);
 
 if (window.aElement) {
   const aFonts = [style['font-family']];
-  const childs = window.aElement.querySelectorAll('*');
-  [...childs].forEach(e => {
-    aFonts.push(window.getComputedStyle(e)['font-family']);
-  });
+  // get fonts of all the parent elements
+  let p = window.aElement;
+  while (p !== document) {
+    aFonts.push(window.getComputedStyle(p)['font-family']);
+    p = p.parentNode;
+  }
 
   let fonts = [];
   aFonts.forEach(fs => {
@@ -84,7 +96,7 @@ if (window.aElement) {
     getComputedStyle: {
       'color': style.color,
       'background-color': style['background-color'],
-      'font-family': fonts.join(', '),
+      'font-family': style['font-family'],
       'font-family-rendered': getFont(
         fonts,
         window.getSelection().toString() || window.aElement.textContent
@@ -105,6 +117,6 @@ if (window.aElement) {
       'element-id': window.aElement.id || 'Not Applicable',
       'element-class': Array.from(window.aElement.classList).join(', ')
     },
-    complex: childs.length !== 0
+    complex: window.aElement.children.length !== 0
   });
 }
