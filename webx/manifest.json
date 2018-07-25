@@ -51,6 +51,7 @@
     "128": "data/icons/128.png"
   },
   "web_accessible_resources": [
+    "data/inject/*.woff2",
     "data/window/index.html"
   ],
   "applications": {

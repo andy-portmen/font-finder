@@ -23,7 +23,7 @@ chrome.runtime.sendMessage({
         a.dataset.cmd = 'open';
         a.href = '#';
         const span = document.createElement('span');
-        span.textContent = percent + '%';
+        span.textContent = percent.toFixed(1) + '%';
         div.appendChild(a);
         div.appendChild(span);
         element.appendChild(div);
