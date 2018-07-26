@@ -15,7 +15,9 @@ chrome.runtime.sendMessage({
   for (const e of Object.keys(analyzed.getComputedStyle)) {
     const element = document.querySelector(`[data-obj="${e}"]`);
     if (element && e === 'font-family-rendered') {
-      analyzed.getComputedStyle[e].forEach(([fontname, percent]) => {
+      Object.entries(analyzed.getComputedStyle[e])
+      .sort((a, b) => b[1] - a[1])
+      .forEach(([fontname, percent]) => {
         const div = document.createElement('div');
         const a = document.createElement('a');
         a.textContent = fontname;
