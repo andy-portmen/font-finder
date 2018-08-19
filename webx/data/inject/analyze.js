@@ -83,8 +83,9 @@ if (window.aElement) {
   };
   // split into segments
   const split = () => {
-    let text = (window.getSelection().toString() || window.aElement.textContent)
-      .replace(/[\s\t\n\r]/g, '');
+    let text = (
+      window.getSelection().toString() || window.aElement.textContent || window.aElement.value || 'Sample Text'
+    ).replace(/[\s\t\n\r]/g, '');
     // split text into segments
     const segments = [];
     for (const [begin, end] of ranges) {
@@ -98,7 +99,7 @@ if (window.aElement) {
         }
       }
     }
-    console.log(segments);
+    // console.log(segments);
     // detect
     const obj = {};
     const tot = segments.reduce((p, c) => p + c.length, 0);
