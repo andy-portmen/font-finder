@@ -17,7 +17,8 @@ var ctx = canvas.getContext('2d');
 // get the active element
 window.aElement = window.aElement || document.activeElement;
 // generate a unique key for eeach font-family
-var key = (str, fonts) => {
+var key = (str, fonts, lang) => {
+  canvas.lang = lang;
   // clear the canvas
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   // draw new text
@@ -66,16 +67,16 @@ if (window.aElement) {
   });
 
   // detect the font-family
-  const detect = str => {
-    const fallback = key(str, 'notdef');
+  const detect = (str, lang = '') => {
+    const fallback = key(str, 'notdef', lang);
 
     const list = [...fontStack, ...baseFonts]
       .filter((s, i, l) => l.indexOf(s) === i);
-    const ref = key(str, style['font-family']);
+    const ref = key(str, style['font-family'], lang);
 
     for (const font of list) {
-      if (key(str, font) === ref && // font is equal to the referenced font
-        key(str, `"${font}",notdef`) !== fallback /* is a known font */) {
+      if (key(str, font, lang) === ref && // font is equal to the referenced font
+        key(str, `"${font}",notdef`, lang) !== fallback /* is a known font */) {
         return font;
       }
     }
@@ -104,7 +105,8 @@ if (window.aElement) {
     const obj = {};
     const tot = segments.reduce((p, c) => p + c.length, 0);
     for (const str of segments) {
-      const fonts = detect(str);
+      const e = window.aElement.closest('[lang]'); // do we have a lang attribute
+      const fonts = detect(str, e ? e.lang : '');
       obj[fonts] = obj[fonts] || 0;
       obj[fonts] += str.length / tot * 100;
     }
