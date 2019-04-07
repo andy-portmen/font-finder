@@ -13,7 +13,7 @@
   border: dotted 1px #0088cc;
 }
 
-.iffselector:before {
+.iffselector::before {
   margin-top: -20px;
   float: right;
   content: attr(data-type);

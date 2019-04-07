@@ -16,20 +16,20 @@ chrome.runtime.sendMessage({
     const element = document.querySelector(`[data-obj="${e}"]`);
     if (element && e === 'font-family-rendered') {
       Object.entries(analyzed.getComputedStyle[e])
-      .sort((a, b) => b[1] - a[1])
-      .forEach(([fontname, percent]) => {
-        const div = document.createElement('div');
-        const a = document.createElement('a');
-        a.textContent = fontname;
-        a.dataset.fontname = fontname;
-        a.dataset.cmd = 'open';
-        a.href = '#';
-        const span = document.createElement('span');
-        span.textContent = percent.toFixed(1) + '%';
-        div.appendChild(a);
-        div.appendChild(span);
-        element.appendChild(div);
-      });
+        .sort((a, b) => b[1] - a[1])
+        .forEach(([fontname, percent]) => {
+          const div = document.createElement('div');
+          const a = document.createElement('a');
+          a.textContent = fontname;
+          a.dataset.fontname = fontname;
+          a.dataset.cmd = 'open';
+          a.href = '#';
+          const span = document.createElement('span');
+          span.textContent = percent.toFixed(1) + '%';
+          div.appendChild(a);
+          div.appendChild(span);
+          element.appendChild(div);
+        });
     }
     else if (element) {
       element.textContent = analyzed.getComputedStyle[e];
@@ -87,4 +87,9 @@ document.addEventListener('keydown', ({key}) => {
       cmd: 'release'
     });
   }
+});
+
+// localization
+[...document.querySelectorAll('[data-i18n]')].forEach(e => {
+  e.textContent = chrome.i18n.getMessage(e.dataset.i18n);
 });

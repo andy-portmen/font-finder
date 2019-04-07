@@ -1,9 +1,10 @@
 {
   "name": "Font Finder",
-  "description": "An easy-to-use font inspector to get CSS styles of the selected element",
+  "description": "__MSG_app_description__",
   "author": "Andy Portmen",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "manifest_version": 2,
+  "default_locale": "en",
   "permissions": [
     "storage",
     "tabs",
@@ -17,8 +18,8 @@
       "common.js"
     ]
   },
-  "browser_action":{
-    "default_title": "Click once to enable the inspector, then move your mouse over the element. Click the ESC key to release the inspector",
+  "browser_action": {
+    "default_title": "__MSG_browser_action__",
     "default_icon": {
       "16": "data/icons/16.png",
       "18": "data/icons/18.png",
@@ -54,6 +55,10 @@
     "data/inject/AND-Regular.otf",
     "data/window/index.html"
   ],
+  "options_ui": {
+    "page": "data/options/index.html",
+    "chrome_style": true
+  },
   "applications": {
     "gecko": {
       "id": "{a658a273-612e-489e-b4f1-5344e672f4f5}"

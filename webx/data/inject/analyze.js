@@ -33,7 +33,7 @@ if (window.aElement) {
   // get the list of all font-families (up to window object)
   const fontStack = (() => {
     const aFonts = [];
-    for(let e = window.aElement; e && e !== document; e = e.parentNode) {
+    for (let e = window.aElement; e && e !== document; e = e.parentNode) {
       aFonts.push(window.getComputedStyle(e)['font-family']);
     }
     return [].concat([], ...aFonts.map(fs => fs.replace(/[;'"]/g, '').split(/\s*,\s*/)));

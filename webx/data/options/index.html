@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Font Finder :: Options Page</title>
+  <meta charset="utf-8">
+</head>
+<body>
+  <style type="text/css">
+    body {
+      min-width: 500px;
+    }
+    hr {
+      border: none;
+      border-top: dashed 1px #ccc;
+      padding-bottom: 3px;
+    }
+  </style>
+  <div id="explore"></div>
+  <table width=100%>
+    <tr>
+      <td><input id="selection" type="checkbox"></td>
+      <td><span data-i18n="options_selection"></span><sup>1</sup></td>
+    </tr>
+    <tr>
+      <td><input id="copy" type="checkbox"></td>
+      <td><span data-i18n="options_copy"></span><sup>1</sup></td>
+    </tr>
+    <tr>
+      <td><input id="replace" type="checkbox"></td>
+      <td><span data-i18n="options_replace"></span><sup>1</sup></td>
+    </tr>
+    <tr>
+      <td><input id="page" type="checkbox"></td>
+      <td><span data-i18n="options_page"></span><sup>1</sup></td>
+    </tr>
+    <tr>
+      <td><input id="find" type="checkbox"></td>
+      <td><span data-i18n="options_find"></span><sup>1</sup></td>
+    </tr>
+    <tr>
+      <td><input id="faqs" type="checkbox"></td>
+      <td data-i18n="options_faqs"></td>
+    </tr>
+  </table>
+  <p style="display: flex; align-items: center;">
+    <button id="support" data-i18n="options_support"></button>&nbsp;
+    <button id="reload" data-i18n="options_reload"></button>&nbsp;
+    <button id="reset" data-i18n="options_reset"></button>
+    <span style="flex: 1"></span>
+    <span id="info"></span>&nbsp;<button id="save" data-i18n="options_save"></button>
+  </p>
+  <hr>
+  1. Restart required
+  <script type="text/javascript" src="index.js"></script>
+  <script async type="text/javascript" src="matched.js"></script>
+</body>
+</html>
