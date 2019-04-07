@@ -27,12 +27,12 @@ document.getElementById('reload').addEventListener('click', () => {
 });
 // save
 document.getElementById('save').addEventListener('click', () => chrome.storage.local.set({
-  'selection': document.getElementById('selection'),
-  'copy': document.getElementById('copy'),
-  'replace': document.getElementById('replace'),
-  'page': document.getElementById('page'),
-  'find': document.getElementById('find'),
-  'faqs': document.getElementById('faqs')
+  'selection': document.getElementById('selection').checked,
+  'copy': document.getElementById('copy').checked,
+  'replace': document.getElementById('replace').checked,
+  'page': document.getElementById('page').checked,
+  'find': document.getElementById('find').checked,
+  'faqs': document.getElementById('faqs').checked
 }, () => {
   info.textContent = 'Options Saved';
   window.setTimeout(() => info.textContent = '', 750);
