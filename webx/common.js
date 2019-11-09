@@ -1,7 +1,7 @@
 'use strict';
 
-var analyzed = [];
-var isFirefox = navigator.userAgent.indexOf('Firefox') !== -1;
+const analyzed = [];
+const isFirefox = navigator.userAgent.indexOf('Firefox') !== -1;
 
 window.persist = (left, top, width, height) => chrome.storage.local.set({
   width,
@@ -10,10 +10,10 @@ window.persist = (left, top, width, height) => chrome.storage.local.set({
   top
 });
 
-var actions = {
+const actions = {
   page: (tab, info) => {
     // is select.js already injected?
-    chrome.tabs.executeScript(tab.id, {
+    chrome.tabs.executeScript({
       'runAt': 'document_start',
       'allFrames': false,
       'code': '!!window.div'
@@ -39,20 +39,20 @@ var actions = {
             '64': 'data/icons/inspect/64.png'
           }
         });
-        chrome.tabs.insertCSS(tab.id, {
+        chrome.tabs.insertCSS({
           'runAt': 'document_start',
           'allFrames': true,
           'matchAboutBlank': true,
           'file': '/data/inject/select.css'
         }, () => {
-          chrome.tabs.executeScript(tab.id, {
+          chrome.tabs.executeScript({
             'runAt': 'document_start',
             'allFrames': true,
             'matchAboutBlank': true,
             'file': '/data/inject/select.js'
           }, () => {
             // on activeFrame show element picker
-            chrome.tabs.executeScript(tab.id, {
+            chrome.tabs.executeScript({
               'runAt': 'document_start',
               'frameId': info.frameId,
               'code': `
@@ -211,11 +211,20 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
         }
       }`
     }, r => {
-      document.oncopy = e => {
-        e.clipboardData.setData('text/plain', 'Font Details:\n\n' + r[0]);
-        e.preventDefault();
-      };
-      document.execCommand('copy', false, null);
+      chrome.permissions.request({
+        permissions: ['clipboardWrite']
+      }, granted => {
+        if (granted) {
+          const str = 'Font Details:\n\n' + r[0];
+          navigator.clipboard.writeText(str).catch(() => {
+            document.oncopy = e => {
+              e.clipboardData.setData('text/plain', str);
+              e.preventDefault();
+            };
+            document.execCommand('Copy', false, null);
+          });
+        }
+      });
     });
   }
   else if (info.menuItemId === 'find') {

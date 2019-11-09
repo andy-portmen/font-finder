@@ -86,7 +86,16 @@
     "options_save": {
         "message": "Save Options"
     },
+    "options_restart": {
+        "message": "Restart required"
+    },
     "options_reload": {
         "message": "Reload"
+    },
+    "options_permission": {
+        "message": "Full Permission"
+    },
+    "options_permission_desc": {
+        "message": "Only if you need to get the font information on cross-origin iframes, the extension needs to grant all hostnames permission. In normal operation, activeTab permission is enough to get the font information."
     }
 }

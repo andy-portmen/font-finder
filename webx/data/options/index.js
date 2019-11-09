@@ -1,12 +1,12 @@
 'use strict';
 
-var info = document.getElementById('info');
+const toast = document.getElementById('toast');
 
 // reset
 document.getElementById('reset').addEventListener('click', e => {
   if (e.detail === 1) {
-    info.textContent = 'Double-click to reset!';
-    window.setTimeout(() => info.textContent = '', 750);
+    toast.textContent = 'Double-click to reset!';
+    window.setTimeout(() => toast.textContent = '', 750);
   }
   else {
     localStorage.clear();
@@ -34,8 +34,8 @@ document.getElementById('save').addEventListener('click', () => chrome.storage.l
   'find': document.getElementById('find').checked,
   'faqs': document.getElementById('faqs').checked
 }, () => {
-  info.textContent = 'Options Saved';
-  window.setTimeout(() => info.textContent = '', 750);
+  toast.textContent = 'Options Saved';
+  window.setTimeout(() => toast.textContent = '', 750);
 }));
 // localization
 [...document.querySelectorAll('[data-i18n]')].forEach(e => {
@@ -51,4 +51,12 @@ chrome.storage.local.get({
   'faqs': true
 }, prefs => Object.entries(prefs).forEach(([key, value]) => {
   document.getElementById(key).checked = value;
+}));
+
+document.getElementById('permission').addEventListener('click', () => chrome.permissions.request({
+  permissions: ['tabs'],
+  origins: ['<all_urls>']
+}, granted => {
+  toast.textContent = granted ? 'Full permission is granted.' : 'Operation canceled';
+  window.setTimeout(() => toast.textContent = '', 750);
 }));

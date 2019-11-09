@@ -7,10 +7,13 @@
   "default_locale": "en",
   "permissions": [
     "storage",
-    "tabs",
+    "activeTab",
+    "contextMenus"
+  ],
+  "optional_permissions": [
+    "clipboardWrite",
     "<all_urls>",
-    "contextMenus",
-    "clipboardWrite"
+    "tabs"
   ],
   "background": {
     "persistent": false,
@@ -58,10 +61,5 @@
   "options_ui": {
     "page": "data/options/index.html",
     "chrome_style": true
-  },
-  "applications": {
-    "gecko": {
-      "id": "{a658a273-612e-489e-b4f1-5344e672f4f5}"
-    }
   }
 }
