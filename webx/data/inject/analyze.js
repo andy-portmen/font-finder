@@ -129,7 +129,8 @@
         const fonts = detect(str, e ? e.lang : '');
         obj[fonts] = obj[fonts] || {
           percent: 0,
-          remote: false
+          remote: false,
+          info: ''
         };
         obj[fonts].percent += str.length / tot * 100;
       }
@@ -139,8 +140,19 @@
       for (const name of Object.keys(obj)) {
         const f = style['font-size'] + ' "' + name + '"';
         try {
-          const remote = (await document.fonts.load(f)).length !== 0;
-          obj[name].remote = remote;
+          const fontFace = (await document.fonts.load(f))[0];
+          if (fontFace) {
+            obj[name].remote = true;
+            obj[name].info = `FontFace Details:
+
+display: ${fontFace['display']}
+family: ${fontFace['family']}
+stretch: ${fontFace['stretch']}
+style: ${fontFace['style']}
+unicodeRange: ${fontFace['unicodeRange']}
+variant: ${fontFace['variant']}
+weight: ${fontFace['weight']}`;
+          }
         }
         catch (e) {}
       }

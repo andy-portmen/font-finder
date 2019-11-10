@@ -16,8 +16,8 @@ chrome.runtime.sendMessage({
     const element = document.querySelector(`[data-obj="${e}"]`);
     if (element && e === 'font-family-rendered') {
       Object.entries(analyzed.getComputedStyle[e])
-        .sort((a, b) => b[1] - a[1])
-        .forEach(([fontname, {percent, remote}]) => {
+        .sort((a, b) => b[1].percent - a[1].percent)
+        .forEach(([fontname, {percent, remote, info}]) => {
           const div = document.createElement('div');
           const a = document.createElement('a');
           a.textContent = fontname;
@@ -26,6 +26,9 @@ chrome.runtime.sendMessage({
           a.href = '#';
           const span = document.createElement('span');
           span.textContent = `${percent.toFixed(1)}% (${remote ? 'remote' : 'local'})`;
+          if (info) {
+            div.title = info;
+          }
           div.appendChild(a);
           div.appendChild(span);
           element.appendChild(div);

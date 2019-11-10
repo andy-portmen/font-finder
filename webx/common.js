@@ -54,6 +54,7 @@ const actions = {
             // on activeFrame show element picker
             chrome.tabs.executeScript({
               'runAt': 'document_start',
+              'matchAboutBlank': true,
               'frameId': info.frameId,
               'code': `
                 mouseover({
@@ -74,6 +75,7 @@ const actions = {
     chrome.tabs.executeScript(tab.id, {
       'runAt': 'document_start',
       'frameId': info.frameId,
+      'matchAboutBlank': true,
       'file': '/data/inject/analyze.js'
     });
   },
@@ -93,8 +95,9 @@ const actions = {
     });
     chrome.tabs.sendMessage(tab.id, 'release');
     chrome.tabs.executeScript(tab.id, {
-      runAt: 'document_start',
-      code: `
+      'runAt': 'document_start',
+      'matchAboutBlank': true,
+      'code': `
         [...document.querySelectorAll('#font-finder-embedded-div')].forEach(d => d.remove());
       `
     });
@@ -324,6 +327,7 @@ chrome.runtime.onMessage.addListener((request, sender, respond) => {
       else {
         chrome.tabs.executeScript(sender.tab.id, {
           runAt: 'document_start',
+          matchAboutBlank: true,
           code: `{
             [...document.querySelectorAll('#font-finder-embedded-div')].forEach(d => d.remove());
             const div = document.createElement('div');

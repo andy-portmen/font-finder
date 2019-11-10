@@ -2,18 +2,17 @@
   "name": "Font Finder",
   "description": "__MSG_app_description__",
   "author": "Andy Portmen",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "manifest_version": 2,
   "default_locale": "en",
   "permissions": [
     "storage",
-    "activeTab",
+    "tabs",
+    "<all_urls>",
     "contextMenus"
   ],
   "optional_permissions": [
-    "clipboardWrite",
-    "<all_urls>",
-    "tabs"
+    "clipboardWrite"
   ],
   "background": {
     "persistent": false,

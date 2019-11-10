@@ -16,8 +16,16 @@ function mouseover(e) {
   div.style.width = rect.width + 'px';
   div.style.height = rect.height + 'px';
   div.style.display = 'block';
-  div.dataset.iframe = target.localName === 'iframe';
   div.dataset.type = target.localName;
+  if (target.tagName === 'IFRAME') {
+    div.dataset.iframe = true;
+    try {
+      target.contentWindow;
+    }
+    catch (e) {
+      div.dataset.type += ' (remote frame)';
+    }
+  }
 }
 function onclick(e) {
   if (e.button === 0) {
