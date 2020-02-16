@@ -2,9 +2,6 @@
     "app_description": {
         "message": "An easy-to-use font inspector to get CSS styles of the selected element"
     },
-    "browser_action": {
-        "message": "Click once to enable the inspector, then move your mouse over the element. Click the ESC key to release the inspector"
-    },
     "context_copy": {
         "message": "Copy Font Details"
     },

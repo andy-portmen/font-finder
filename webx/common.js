@@ -304,14 +304,14 @@ chrome.runtime.onMessage.addListener((request, sender, respond) => {
     //
     chrome.storage.local.get({
       width: 600,
-      height: 650,
+      height: 700,
       mode: 'window'
     }, prefs => {
       if (prefs.mode === 'window') {
         chrome.windows.getCurrent(win => {
           request.id = win.id;
           const left = win.left + Math.round((win.width - 500) / 2);
-          const top = win.top + Math.round((win.height - 600) / 2);
+          const top = win.top + Math.round((win.height - 700) / 2);
           chrome.windows.create({
             url: chrome.extension.getURL('data/window/index.html?mode=window'),
             type: 'panel',

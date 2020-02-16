@@ -11,6 +11,7 @@ function rgb2hex(rgb) {
 chrome.runtime.sendMessage({
   cmd: 'get'
 }, analyzed => {
+  console.log(analyzed);
   document.querySelector('[data-obj=url]').textContent = analyzed.url;
   for (const e of Object.keys(analyzed.getComputedStyle)) {
     const element = document.querySelector(`[data-obj="${e}"]`);

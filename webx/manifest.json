@@ -20,20 +20,7 @@
       "common.js"
     ]
   },
-  "browser_action": {
-    "default_title": "__MSG_browser_action__",
-    "default_icon": {
-      "16": "data/icons/16.png",
-      "18": "data/icons/18.png",
-      "19": "data/icons/19.png",
-      "32": "data/icons/32.png",
-      "36": "data/icons/36.png",
-      "38": "data/icons/38.png",
-      "48": "data/icons/48.png",
-      "64": "data/icons/64.png",
-      "128": "data/icons/128.png"
-    }
-  },
+  "browser_action": {},
   "content_scripts": [{
     "matches": ["<all_urls>"],
     "js": ["data/inject/inject.js"],

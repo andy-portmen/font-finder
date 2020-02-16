@@ -63,7 +63,9 @@
         'text-indent': style['text-indent'],
         'element-type': window.aElement.localName,
         'element-id': window.aElement.id || 'Not Applicable',
-        'element-class': [...window.aElement.classList].join(', ')
+        'element-class': [...window.aElement.classList].join(', '),
+        'margin': style['margin'],
+        'padding': style['padding']
       },
       complex: window.aElement.children.length !== 0
     });

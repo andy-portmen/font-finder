@@ -15,20 +15,20 @@ table td:first-child {
 ul {
   list-style-type: none;
 }
-li:nth-child(odd) {
-  background-color: #f5f5f5;
-}
-li:hover {
-  background-color: rgba(0, 105, 255, 0.1);
-}
 li {
   color: #d13333;
   display: flex;
   align-items: center;
   padding: 2px;
 }
-li>a,
-li>span {
+li:nth-child(odd) {
+  background-color: #f5f5f5;
+}
+li:hover {
+  background-color: rgba(0, 105, 255, 0.1);
+}
+li > a,
+li > span {
   flex: 1;
   padding: 0 5px;
 }
