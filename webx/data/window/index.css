@@ -1,6 +1,7 @@
 body {
-  font-family: arial,sans-serif;
+  font-family: arial, sans-serif;
   color: #222;
+  background-color: #fff;
   font-size: 13px;
   overflow: auto;
 }
