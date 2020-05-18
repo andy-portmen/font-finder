@@ -198,8 +198,14 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
       matchAboutBlank: true,
       runAt: 'document_start',
       code: `{
-        if (window.aElement) {
-          const o = window.getComputedStyle(window.aElement);
+        const s = window.getSelection();
+        const r = s.getRangeAt(0);
+        let aElement = r.commonAncestorContainer;
+        if (aElement.nodeType !== Element.ELEMENT_NODE) {
+          aElement = aElement.parentElement;
+        }
+        if (aElement) {
+          const o = window.getComputedStyle(aElement);
           'font-family: ' + o.getPropertyValue('font-family') + '\\n' +
           'font-size: ' + o.getPropertyValue('font-size') + '\\n' +
           'font-style: ' + o.getPropertyValue('font-style') + '\\n' +
@@ -250,13 +256,19 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
       matchAboutBlank: true,
       runAt: 'document_start',
       code: `{
-        if (window.aElement) {
+        const s = window.getSelection();
+        const r = s.getRangeAt(0);
+        let aElement = r.commonAncestorContainer;
+        if (aElement.nodeType !== Element.ELEMENT_NODE) {
+          aElement = aElement.parentElement;
+        }
+        if (aElement) {
           const name = window.prompt(
             'Enter the new font name',
-            window.getComputedStyle(window.aElement).getPropertyValue('font-family')
+            window.getComputedStyle(aElement).getPropertyValue('font-family')
           );
           if (name) {
-            window.aElement.style['font-family'] = name;
+            aElement.style['font-family'] = name;
           }
         }
         else {
@@ -351,29 +363,29 @@ chrome.runtime.onMessage.addListener((request, sender, respond) => {
     });
   }
 });
-
+/* FAQs & Feedback */
 {
-  const {onInstalled, setUninstallURL, getManifest} = chrome.runtime;
-  const {name, version} = getManifest();
-  const page = getManifest().homepage_url;
-  onInstalled.addListener(({reason, previousVersion}) => {
-    chrome.storage.local.get({
-      'faqs': true,
-      'last-update': 0
-    }, prefs => {
-      if (reason === 'install' || (prefs.faqs && reason === 'update')) {
-        const doUpdate = (Date.now() - prefs['last-update']) / 1000 / 60 / 60 / 24 > 45;
-        if (doUpdate && previousVersion !== version) {
-          chrome.tabs.create({
-            url: page + '?version=' + version +
-              (previousVersion ? '&p=' + previousVersion : '') +
-              '&type=' + reason,
-            active: reason === 'install'
-          });
-          chrome.storage.local.set({'last-update': Date.now()});
+  const {management, runtime: {onInstalled, setUninstallURL, getManifest}, storage, tabs} = chrome;
+  if (navigator.webdriver !== true) {
+    const page = getManifest().homepage_url;
+    const {name, version} = getManifest();
+    onInstalled.addListener(({reason, previousVersion}) => {
+      management.getSelf(({installType}) => installType === 'normal' && storage.local.get({
+        'faqs': true,
+        'last-update': 0
+      }, prefs => {
+        if (reason === 'install' || (prefs.faqs && reason === 'update')) {
+          const doUpdate = (Date.now() - prefs['last-update']) / 1000 / 60 / 60 / 24 > 45;
+          if (doUpdate && previousVersion !== version) {
+            tabs.create({
+              url: page + '?version=' + version + (previousVersion ? '&p=' + previousVersion : '') + '&type=' + reason,
+              active: reason === 'install'
+            });
+            storage.local.set({'last-update': Date.now()});
+          }
         }
-      }
+      }));
     });
-  });
-  setUninstallURL(page + '?rd=feedback&name=' + encodeURIComponent(name) + '&version=' + version);
+    setUninstallURL(page + '?rd=feedback&name=' + encodeURIComponent(name) + '&version=' + version);
+  }
 }

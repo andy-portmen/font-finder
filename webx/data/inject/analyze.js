@@ -17,7 +17,21 @@
   const ctx = canvas.getContext('2d');
 
   // get the active element
-  window.aElement = window.aElement || document.activeElement;
+  let aElement = window.aElement;
+  if (!aElement || aElement === document.body) {
+    const s = window.getSelection();
+    const r = s.getRangeAt(0);
+    aElement = r.commonAncestorContainer;
+    if (aElement.nodeType !== Element.ELEMENT_NODE) {
+      aElement = aElement.parentElement;
+    }
+  }
+  else {
+    // remove old inspect
+    delete window.aElement;
+  }
+  console.log('Selected Note', aElement);
+
   // generate a unique key for eeach font-family
   const key = (str, fonts, lang) => {
     canvas.lang = lang;
@@ -29,13 +43,13 @@
     return canvas.toDataURL();
   };
 
-  if (window.aElement) {
-    const style = window.getComputedStyle(window.aElement);
+  if (aElement) {
+    const style = window.getComputedStyle(aElement);
 
     // get the list of all font-families (up to window object)
     const fontStack = (() => {
       const aFonts = [];
-      for (let e = window.aElement; e && e !== document; e = e.parentNode) {
+      for (let e = aElement; e && e !== document; e = e.parentNode) {
         aFonts.push(window.getComputedStyle(e)['font-family']);
       }
       return [].concat([], ...aFonts.map(fs => fs.replace(/[;'"]/g, '').split(/\s*,\s*/)));
@@ -61,13 +75,13 @@
         'text-decoration': style['text-decoration'],
         'text-align': style['text-align'],
         'text-indent': style['text-indent'],
-        'element-type': window.aElement.localName,
-        'element-id': window.aElement.id || 'Not Applicable',
-        'element-class': [...window.aElement.classList].join(', '),
+        'element-type': aElement.localName,
+        'element-id': aElement.id || 'Not Applicable',
+        'element-class': [...aElement.classList].join(', '),
         'margin': style['margin'],
         'padding': style['padding']
       },
-      complex: window.aElement.children.length !== 0
+      complex: aElement.children.length !== 0
     });
 
     // detect the font-family
@@ -106,7 +120,7 @@
       };
 
       let text = (
-        window.getSelection().toString() || textContent(window.aElement) || window.aElement.value || 'q!@#$%^&*()/;'
+        window.getSelection().toString() || textContent(aElement) || aElement.value || 'q!@#$%^&*()/;'
       ).replace(/[\s\t\n\r]/g, '');
 
       // split text into segments
@@ -127,7 +141,7 @@
       const obj = {};
       const tot = segments.reduce((p, c) => p + c.length, 0);
       for (const str of segments) {
-        const e = window.aElement.closest('[lang]'); // do we have a lang attribute
+        const e = aElement.closest('[lang]'); // do we have a lang attribute
         const fonts = detect(str, e ? e.lang : '');
         obj[fonts] = obj[fonts] || {
           percent: 0,

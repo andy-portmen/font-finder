@@ -20,11 +20,6 @@ document.getElementById('reset').addEventListener('click', e => {
 document.getElementById('support').addEventListener('click', () => chrome.tabs.create({
   url: chrome.runtime.getManifest().homepage_url + '?rd=donate'
 }));
-// reload
-document.getElementById('reload').addEventListener('click', () => {
-  window.setTimeout(() => window.close(), 0);
-  chrome.runtime.reload();
-});
 // save
 document.getElementById('save').addEventListener('click', () => chrome.storage.local.set({
   'selection': document.getElementById('selection').checked,
@@ -51,12 +46,4 @@ chrome.storage.local.get({
   'faqs': true
 }, prefs => Object.entries(prefs).forEach(([key, value]) => {
   document.getElementById(key).checked = value;
-}));
-
-document.getElementById('permission').addEventListener('click', () => chrome.permissions.request({
-  permissions: ['tabs'],
-  origins: ['<all_urls>']
-}, granted => {
-  toast.textContent = granted ? 'Full permission is granted.' : 'Operation canceled';
-  window.setTimeout(() => toast.textContent = '', 750);
 }));
