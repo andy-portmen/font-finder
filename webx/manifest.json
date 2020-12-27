@@ -2,7 +2,7 @@
   "name": "Font Finder",
   "description": "__MSG_app_description__",
   "author": "Andy Portmen",
-  "version": "0.3.7",
+  "version": "0.3.8",
   "manifest_version": 2,
   "default_locale": "en",
   "permissions": [

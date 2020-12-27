@@ -91,8 +91,5 @@
     },
     "options_permission": {
         "message": "Permiso total"
-    },
-    "options_permission_desc": {
-        "message": "Solo si necesita obtener la información de la fuente en marcos de origen cruzado, la extensión debe conceder permiso a todos los nombres de dominio. Normalmente, el permiso activeTab es suficiente para obtener la información de la fuente."
     }
 }
