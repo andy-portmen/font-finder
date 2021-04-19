@@ -23,6 +23,9 @@
     "context_window_mode": {
         "message": "Open in Window mode"
     },
+    "context_tutorial": {
+        "message": "Usage Instruction"
+    },
     "window_class": {
         "message": "Element Class:"
     },

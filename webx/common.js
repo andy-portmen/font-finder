@@ -169,6 +169,11 @@ const actions = {
         type: 'radio',
         checked: prefs.mode !== 'window'
       });
+      chrome.contextMenus.create({
+        id: 'tutorial',
+        title: chrome.i18n.getMessage('context_tutorial'),
+        contexts: ['browser_action']
+      });
     });
   };
   if (isFirefox) {
@@ -181,7 +186,12 @@ const actions = {
 }
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
-  if (info.menuItemId.startsWith('mode:')) {
+  if (info.menuItemId === 'tutorial') {
+    chrome.tabs.create({
+      url: 'https://www.youtube.com/watch?v=CGI3Atdzt64'
+    });
+  }
+  else if (info.menuItemId.startsWith('mode:')) {
     chrome.storage.local.set({
       mode: info.menuItemId.replace('mode:', '')
     });
@@ -381,7 +391,7 @@ chrome.runtime.onMessage.addListener((request, sender, respond) => {
             tabs.query({active: true, currentWindow: true}, tbs => tabs.create({
               url: page + '?version=' + version + (previousVersion ? '&p=' + previousVersion : '') + '&type=' + reason,
               active: reason === 'install',
-              index: tbs ? tbs[0].index + 1 : undefined
+              ...(tbs && tbs.length && {index: tbs[0].index + 1})
             }));
             storage.local.set({'last-update': Date.now()});
           }

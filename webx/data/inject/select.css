@@ -1,4 +1,5 @@
 .iffselector {
+  all: unset;
   box-sizing: border-box;
   position: fixed;
   border: dashed 1px #08c;
@@ -13,6 +14,7 @@
   border: dotted 1px #08c;
 }
 .iffselector::before {
+  all: unset;
   margin-top: -20px;
   float: right;
   content: attr(data-type);
