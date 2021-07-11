@@ -1,0 +1,95 @@
+{
+    "app_description": {
+        "message": "Un inspector de fuentes fácil de usar que permite obtener los estilos CSS del elemento seleccionado"
+    },
+    "context_copy": {
+        "message": "Copiar detalles de la fuente"
+    },
+    "context_embed_mode": {
+        "message": "Abrir en modo integrado"
+    },
+    "context_find": {
+        "message": "Buscar fuentes en este marco"
+    },
+    "context_page": {
+        "message": "Inspeccionar fuente"
+    },
+    "context_replace": {
+        "message": "Reemplazar fuente con"
+    },
+    "context_selection": {
+        "message": "Analizar selección"
+    },
+    "context_window_mode": {
+        "message": "Abrir en modo ventana"
+    },
+    "window_class": {
+        "message": "Clase del elemento:"
+    },
+    "window_color": {
+        "message": "Color"
+    },
+    "window_decoration": {
+        "message": "Decoración / Transformación"
+    },
+    "window_element": {
+        "message": "Detalles del elemento"
+    },
+    "window_font": {
+        "message": "Fuente"
+    },
+    "window_id": {
+        "message": "Identificación del elemento:"
+    },
+    "window_inspect": {
+        "message": "Inspeccionando:"
+    },
+    "window_rendered": {
+        "message": "La fuente está siendo renderizada:"
+    },
+    "window_spacing": {
+        "message": "Espaciado"
+    },
+    "window_title": {
+        "message": "Inspector :: Font Finder"
+    },
+    "window_type": {
+        "message": "Tipo de elemento:"
+    },
+    "options_copy": {
+        "message": "Mostrar 'Copiar detalles de la fuente' en el menú contextual"
+    },
+    "options_find": {
+        "message": "Mostrar 'Buscar fuentes en este marco' en el menú contextual"
+    },
+    "options_page": {
+        "message": "Mostrar 'Inspeccionar fuente' en el menú contextual"
+    },
+    "options_replace": {
+        "message": "Mostrar \"Reemplazar fuente con\" en el menú contextual"
+    },
+    "options_selection": {
+        "message": "Mostrar 'Analizar selección' en el menú contextual"
+    },
+    "options_faqs": {
+        "message": "Abrir la página de preguntas frecuentes en las actualizaciones"
+    },
+    "options_support": {
+        "message": "Ayuda al desarrollo"
+    },
+    "options_reset": {
+        "message": "Reiniciar ajustes"
+    },
+    "options_save": {
+        "message": "Guardar ajustes"
+    },
+    "options_restart": {
+        "message": "Es necesario reiniciar"
+    },
+    "options_reload": {
+        "message": "Recargar"
+    },
+    "options_permission": {
+        "message": "Permiso total"
+    }
+}

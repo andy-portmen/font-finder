@@ -1,0 +1,7 @@
+@font-face {
+  font-family: 'unifont';
+  font-style: normal;
+  font-weight: 400;
+  src: url('chrome-extension://__MSG_@@extension_id__/data/inject/unifont-11.0.01.ttf') format('truetype'),
+       url('moz-extension://__MSG_@@extension_id__/data/inject/unifont-11.0.01.ttf') format('truetype');
+}

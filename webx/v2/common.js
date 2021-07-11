@@ -354,7 +354,7 @@ chrome.runtime.onMessage.addListener((request, sender, respond) => {
             [...document.querySelectorAll('#font-finder-embedded-div')].forEach(d => d.remove());
             const div = document.createElement('div');
             div.id = 'font-finder-embedded-div';
-            div.style = 'position: fixed; left: 0; top: 0; width: 100%; height: 100%;' +
+            div.style = 'all: inherit; position: fixed; left: 0; top: 0; width: 100%; height: 100%;' +
               'background-color: rgba(0, 0, 0, 0.3); z-index: 2147483647;' +
               'display: flex; align-items: center; justify-content: center;';
 

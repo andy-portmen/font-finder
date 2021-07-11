@@ -1,0 +1,25 @@
+.iffselector {
+  all: unset;
+  box-sizing: border-box;
+  position: fixed;
+  border: dashed 1px #08c;
+  background-color: rgba(183, 225, 243, 0.3);
+  pointer-events: none;
+  z-index: 10000000;
+  white-space: nowrap;
+  margin: 0;
+}
+.iffselector[data-iframe=true] {
+  background-color: transparent;
+  border: dotted 1px #08c;
+}
+.iffselector::before {
+  all: unset;
+  margin-top: -20px;
+  float: right;
+  content: attr(data-type);
+  color: #db7dfb;
+  background-color: whitesmoke;
+  padding: 1px 5px;
+}
+
