@@ -1,0 +1,107 @@
+{
+    "app_description": {
+        "message": "An easy-to-use font inspector to get CSS styles of the selected element"
+    },
+    "context_copy": {
+        "message": "Copy Font Details"
+    },
+    "context_embed_mode": {
+        "message": "Open in Embedded mode"
+    },
+    "context_find": {
+        "message": "Find Fonts in this Frame"
+    },
+    "context_page": {
+        "message": "Inspect Font"
+    },
+    "context_replace": {
+        "message": "Replace Font with"
+    },
+    "context_selection": {
+        "message": "Analyze Selection"
+    },
+    "context_window_mode": {
+        "message": "Open in Window mode"
+    },
+    "context_tutorial": {
+        "message": "Usage Instruction"
+    },
+    "window_class": {
+        "message": "Element Class:"
+    },
+    "window_color": {
+        "message": "Color"
+    },
+    "window_decoration": {
+        "message": "Decoration / Transformation"
+    },
+    "window_element": {
+        "message": "Element Details"
+    },
+    "window_font": {
+        "message": "Font"
+    },
+    "window_id": {
+        "message": "Element ID:"
+    },
+    "window_inspect": {
+        "message": "Inspecting:"
+    },
+    "window_rendered": {
+        "message": "Font being rendered:"
+    },
+    "window_spacing": {
+        "message": "Spacing"
+    },
+    "window_title": {
+        "message": "Inspector :: Font Finder"
+    },
+    "window_type": {
+        "message": "Element Type:"
+    },
+    "options_copy": {
+        "message": "Show 'Copy Font Details' context-menu item"
+    },
+    "options_find": {
+        "message": "Show 'Find Fonts in this Frame' context-menu item"
+    },
+    "options_page": {
+        "message": "Show 'Inspect Font' context-menu item"
+    },
+    "options_replace": {
+        "message": "Show 'Replace Font with' context-menu item"
+    },
+    "options_selection": {
+        "message": "Show 'Analyze Selection' context-menu item"
+    },
+    "options_faqs": {
+        "message": "Open FAQs page on updates"
+    },
+    "options_support": {
+        "message": "Support Development"
+    },
+    "options_reset": {
+        "message": "Factory Reset"
+    },
+    "options_save": {
+        "message": "Save Options"
+    },
+    "options_restart": {
+        "message": "Restart required"
+    },
+    "options_reload": {
+        "message": "Reload"
+    },
+    "options_permission": {
+        "message": "Full Permission"
+    },
+    "options_access": {
+      "message": "Access Cross-Frame Elements"
+    },
+    "options_access_extra": {
+      "message": "With this permission, the extension can inspect cross-origin frame elements"
+    },
+    "options_preview": {
+      "message": "Usage Preview"
+    }
+}

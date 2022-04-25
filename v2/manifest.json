@@ -1,0 +1,43 @@
+{
+  "name": "Font Finder",
+  "description": "__MSG_app_description__",
+  "author": "Andy Portmen",
+  "version": "0.4.0",
+  "manifest_version": 2,
+  "default_locale": "en",
+  "permissions": [
+    "storage",
+    "<all_urls>",
+    "contextMenus"
+  ],
+  "optional_permissions": [
+    "clipboardWrite"
+  ],
+  "background": {
+    "persistent": false,
+    "scripts": [
+      "common.js"
+    ]
+  },
+  "browser_action": {},
+  "homepage_url": "https://add0n.com/font-finder.html",
+  "icons": {
+    "16": "data/icons/16.png",
+    "18": "data/icons/18.png",
+    "19": "data/icons/19.png",
+    "32": "data/icons/32.png",
+    "36": "data/icons/36.png",
+    "38": "data/icons/38.png",
+    "48": "data/icons/48.png",
+    "64": "data/icons/64.png",
+    "128": "data/icons/128.png"
+  },
+  "web_accessible_resources": [
+    "data/inject/AND-Regular.otf",
+    "data/window/index.html"
+  ],
+  "options_ui": {
+    "page": "data/options/index.html",
+    "chrome_style": true
+  }
+}

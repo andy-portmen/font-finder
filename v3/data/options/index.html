@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Font Finder :: Options Page</title>
+  <meta charset="utf-8">
+  <link rel="stylesheet" type="text/css" href="index.css">
+</head>
+<body>
+  <div id="explore"></div>
+  <table width=100%>
+    <tr>
+      <td><input id="selection" type="checkbox"></td>
+      <td><label for="selection" data-i18n="options_selection"></label><sup>1</sup></td>
+    </tr>
+    <tr>
+      <td><input id="copy" type="checkbox"></td>
+      <td><label for="copy" data-i18n="options_copy"></label><sup>1</sup></td>
+    </tr>
+    <tr>
+      <td><input id="replace" type="checkbox"></td>
+      <td><label for="replace" data-i18n="options_replace"></label><sup>1</sup></td>
+    </tr>
+    <tr>
+      <td><input id="page" type="checkbox"></td>
+      <td><label for="page" data-i18n="options_page"></label><sup>1</sup></td>
+    </tr>
+    <tr>
+      <td><input id="find" type="checkbox"></td>
+      <td><label for="find" data-i18n="options_find"></label><sup>1</sup></td>
+    </tr>
+    <tr>
+      <td><input id="faqs" type="checkbox"></td>
+      <td><label for="faqs" data-i18n="options_faqs"></label></td>
+    </tr>
+  </table>
+
+  <p>
+    <button id="access" data-i18n="options_access"></button>
+  </p>
+  <p>
+    <button id="support" data-i18n="options_support"></button>
+    <button id="preview" data-i18n="options_preview"></button>
+  </p>
+  <p>
+    <button id="reset" data-i18n="options_reset"></button>
+    <button id="save" data-i18n="options_save"></button>
+    <span style="flex: 1"></span>
+    <span id="toast"></span>
+  </p>
+  <hr>
+  <ol>
+    <li data-i18n="options_restart"></li>
+    <li data-i18n="options_access_extra"></li>
+  </ol>
+
+  <script type="text/javascript" src="index.js"></script>
+  <script async type="text/javascript" src="matched.js"></script>
+</body>
+</html>
