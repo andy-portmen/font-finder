@@ -1,10 +1,52 @@
 'use strict';
 
-{
-  // default fonts
-  let baseFonts = ['Helvetica', 'Times New Roman', 'Times', 'Microsoft YaHei', 'Microsoft YaHei UI', 'monospace', 'Sans Serif', 'Serif', 'Helvetica Neue', 'Helvetica CY', 'Songti SC', 'Zapfino', 'Zapf Dingbats', 'Zapf Chancery', 'Verdana', 'Trebuchet MS', 'Times CY', 'Thonburi', 'Textile', 'Techno', 'Taipei', 'Tahoma', 'Tae Graphic', 'Symbol', 'ST Song', 'ST Kaiti', 'ST Heiti', 'ST FangSong', 'Song', 'Skia', 'Silom', 'Shin Myungjo Neue', 'Seoul', 'Sathu', 'Sand', 'Raanana', 'Plantagenet Cherokee', 'Pilgiche', 'PC Myungjo', 'Papyrus', 'Palatino', 'Osaka', 'Optima', 'NISC GB18030', 'New York', 'New Peninim', 'Nadeem', 'Mshtakan', 'Monaco CY', 'Monaco', 'Menlo', 'Marker Felt', 'Lucida Grande', 'LiSong Pro', 'LiHei Pro', 'LastResort', 'KufiStandard GK', 'Krungthep', 'Keyboard', 'Kai', 'Jung Gothic', 'Inai Mathi', 'Impact', 'Hoefler Text', 'Hiragino Mincho ProN', 'Hiragino Mincho Pro', 'Hiragino Maru Gothic ProN', 'Hiragino Maru Gothic Pro', 'Hiragino Kaku Gothic StdN', 'Hiragino Kaku Gothic Std', 'Hiragino Kaku Gothic ProN', 'Hiragino Kaku Gothic Pro', 'Herculanum', 'Hei', 'HeadlineA', 'Hangangche', 'Gurmukhi', 'Gung Seoche', 'Gujarati', 'Gill Sans', 'Georgia', 'Geneva CY', 'Geneva', 'Geezah', 'Geeza Pro', 'Gadget', 'Futura', 'Euphemia UCAS', 'Didot', 'Devanagari', 'DecoType Naskh', 'Courier New', 'Courier', 'Corsiva Hebrew', 'Copperplate', 'Cooper', 'Comic Sans', 'Cochin', 'Chicago', 'Charcoal CY', 'Charcoal', 'Chalkduster', 'Chalkboard', 'Brush Script', 'Big Caslon', 'BiauKai', 'Beijing', 'Baskerville', 'Baghdad', 'Ayuthaya', 'Arial Hebrew', 'Arial', 'Apple Symbols', 'Apple Myungjo', 'Apple LiSung', 'Apple LiGothic', 'Apple Gothic', 'Apple Garamond', 'Apple Chancery', 'Apple Casual', 'Andalé Mono', 'American Typewriter', 'Al Bayan', '.AquaKana', 'Abadi MT Condensed Light', 'Aharoni', 'Aldhabi', 'Andalus', 'Angsana New', 'AngsanaUPC', 'Aparajita', 'Arabic Typesetting', 'Arial Black', 'Arial Nova', 'Bahnschrift', 'Batang', 'BatangChe', 'Book Antiqua', 'Browallia New', 'BrowalliaUPC', 'Calibri', 'Calibri Light', 'Calisto MT', 'Cambria', 'Cambria Math', 'Candara', 'Century Gothic', 'Comic Sans MS', 'Consolas', 'Constantia', 'Copperplate Gothic Bold', 'Copperplate Gothic Light', 'Corbel', 'Cordia New', 'CordiaUPC', 'DaunPenh', 'David', 'Dengxian', 'DFKai-SB', 'DilleniaUPC', 'DokChampa', 'Dotum', 'DotumChe', 'Ebrima', 'Estrangelo Edessa', 'EucrosiaUPC', 'Euphemia', 'FangSong', 'Franklin Gothic Medium', 'FrankRuehl', 'FreesiaUPC', 'Gabriola', 'Gadugi', 'Gautami', 'Georgia Pro', 'Gill Sans Nova', 'Gisha', 'Gulim', 'GulimChe', 'Gungsuh', 'GungsuhChe', 'IrisUPC', 'Iskoola Pota', 'JasmineUPC', 'Javanese Text', 'KaiTi', 'Kalinga', 'Kartika', 'Khmer UI', 'KodchiangUPC', 'Kokila', 'Lao UI', 'Latha', 'Leelawadee', 'Leelawadee UI', 'Levenim MT', 'LilyUPC', 'Lucida Console', 'Lucida Handwriting', 'Lucida Sans Unicode', 'Malgun Gothic', 'Mangal', 'Marlett', 'Meiryo', 'Meiryo UI', 'Microsoft Himalaya', 'Microsoft JhengHei', 'Microsoft JhengHei UI', 'Microsoft New Tai Lue', 'Microsoft PhagsPa', 'Microsoft Sans Serif', 'Microsoft Tai Le', 'Microsoft Uighur', 'Microsoft Yi Baiti', 'MingLiU, PMingLiU', 'MingLiU-ExtB, PMingLiU-ExtB', 'MingLiU_HKSCS', 'MingLiU_HKSCS-ExtB', 'Miriam, Miriam Fixed', 'Mongolian Baiti', 'MoolBoran', 'MS Gothic, MS PGothic', 'MS Mincho, MS PMincho', 'MS UI Gothic', 'MV Boli', 'Myanmar Text', 'Narkisim', 'Neue Haas Grotesk Text Pro', 'News Gothic MT', 'Nirmala UI', 'NSimSun', 'Nyala', 'Palatino Linotype', 'Raavi', 'Rockwell Nova', 'Rod', 'Sakkal Majalla', 'Sanskrit Text', 'Segoe MDL2 Assets', 'Segoe Print', 'Segoe Script', 'Segoe UI', 'Segoe UI Emoji', 'Segoe UI Historic', 'Segoe UI Symbol', 'Shonar Bangla', 'Shruti', 'SimHei', 'SimKai', 'Simplified Arabic', 'SimSun', 'SimSun-ExtB', 'Sitka Banner', 'Sitka Display', 'Sitka Heading', 'Sitka Small', 'Sitka Subheading', 'Sitka Text', 'Sylfaen', 'Traditional Arabic', 'Tunga', 'UD Digi KyoKasho N-R', 'UD Digi KyoKasho NK-R', 'UD Digi KyoKasho NP-R', 'Urdu Typesetting', 'Utsaah', 'Vani', 'Verdana Pro', 'Vijaya', 'Vrinda', 'Webdings', 'Westminster', 'Wingdings', 'Yu Gothic', 'Yu Gothic UI', 'Yu Mincho', 'Andale Mono', 'BlinkMacSystemFont', 'cursive', 'fantasy', 'DejaVu Serif', 'DejaVu Sans Mono', 'DejaVu Sans', 'Ubuntu Mono', 'WenQuanYi Micro Hei', 'Gentium Book Basic', 'Gentium Basic', 'Ubuntu', 'Ubuntu Condensed', 'OpenSymbol', 'WenQuanYi Micro Hei Mono'];
+chrome.storage.local.get({
+  userFonts: [],
+  baseFonts: [
+    'Helvetica', 'Times New Roman', 'Times', 'Microsoft YaHei', 'Microsoft YaHei UI', 'monospace', 'Sans Serif',
+    'Serif', 'Helvetica Neue', 'Helvetica CY', 'Songti SC', 'Zapfino', 'Zapf Dingbats', 'Zapf Chancery', 'Verdana',
+    'Trebuchet MS', 'Times CY', 'Thonburi', 'Textile', 'Techno', 'Taipei', 'Tahoma', 'Tae Graphic', 'Symbol',
+    'ST Song', 'ST Kaiti', 'ST Heiti', 'ST FangSong', 'Song', 'Skia', 'Silom', 'Shin Myungjo Neue', 'Seoul', 'Sathu',
+    'Sand', 'Raanana', 'Plantagenet Cherokee', 'Pilgiche', 'PC Myungjo', 'Papyrus', 'Palatino', 'Osaka', 'Optima',
+    'NISC GB18030', 'New York', 'New Peninim', 'Nadeem', 'Mshtakan', 'Monaco CY', 'Monaco', 'Menlo', 'Marker Felt',
+    'Lucida Grande', 'LiSong Pro', 'LiHei Pro', 'LastResort', 'KufiStandard GK', 'Krungthep', 'Keyboard', 'Kai',
+    'Jung Gothic', 'Inai Mathi', 'Impact', 'Hoefler Text', 'Hiragino Mincho ProN', 'Hiragino Mincho Pro',
+    'Hiragino Maru Gothic ProN', 'Hiragino Maru Gothic Pro', 'Hiragino Kaku Gothic StdN', 'Hiragino Kaku Gothic Std',
+    'Hiragino Kaku Gothic ProN', 'Hiragino Kaku Gothic Pro', 'Herculanum', 'Hei', 'HeadlineA', 'Hangangche', 'Gurmukhi',
+    'Gung Seoche', 'Gujarati', 'Gill Sans', 'Georgia', 'Geneva CY', 'Geneva', 'Geezah', 'Geeza Pro', 'Gadget', 'Futura',
+    'Euphemia UCAS', 'Didot', 'Devanagari', 'DecoType Naskh', 'Courier New', 'Courier', 'Corsiva Hebrew', 'Copperplate',
+    'Cooper', 'Comic Sans', 'Cochin', 'Chicago', 'Charcoal CY', 'Charcoal', 'Chalkduster', 'Chalkboard', 'Brush Script',
+    'Big Caslon', 'BiauKai', 'Beijing', 'Baskerville', 'Baghdad', 'Ayuthaya', 'Arial Hebrew', 'Arial', 'Apple Symbols',
+    'Apple Myungjo', 'Apple LiSung', 'Apple LiGothic', 'Apple Gothic', 'Apple Garamond', 'Apple Chancery', 'Apple Casual',
+    'Andalé Mono', 'American Typewriter', 'Al Bayan', '.AquaKana', 'Abadi MT Condensed Light', 'Aharoni', 'Aldhabi',
+    'Andalus', 'Angsana New', 'AngsanaUPC', 'Aparajita', 'Arabic Typesetting', 'Arial Black', 'Arial Nova',
+    'Bahnschrift', 'Batang', 'BatangChe', 'Book Antiqua', 'Browallia New', 'BrowalliaUPC', 'Calibri', 'Calibri Light',
+    'Calisto MT', 'Cambria', 'Cambria Math', 'Candara', 'Century Gothic', 'Comic Sans MS', 'Consolas', 'Constantia',
+    'Copperplate Gothic Bold', 'Copperplate Gothic Light', 'Corbel', 'Cordia New', 'CordiaUPC', 'DaunPenh', 'David',
+    'Dengxian', 'DFKai-SB', 'DilleniaUPC', 'DokChampa', 'Dotum', 'DotumChe', 'Ebrima', 'Estrangelo Edessa',
+    'EucrosiaUPC', 'Euphemia', 'FangSong', 'Franklin Gothic Medium', 'FrankRuehl', 'FreesiaUPC', 'Gabriola', 'Gadugi',
+    'Gautami', 'Georgia Pro', 'Gill Sans Nova', 'Gisha', 'Gulim', 'GulimChe', 'Gungsuh', 'GungsuhChe', 'IrisUPC',
+    'Iskoola Pota', 'JasmineUPC', 'Javanese Text', 'KaiTi', 'Kalinga', 'Kartika', 'Khmer UI', 'KodchiangUPC', 'Kokila',
+    'Lao UI', 'Latha', 'Leelawadee', 'Leelawadee UI', 'Levenim MT', 'LilyUPC', 'Lucida Console', 'Lucida Handwriting',
+    'Lucida Sans Unicode', 'Malgun Gothic', 'Mangal', 'Marlett', 'Meiryo', 'Meiryo UI', 'Microsoft Himalaya',
+    'Microsoft JhengHei', 'Microsoft JhengHei UI', 'Microsoft New Tai Lue', 'Microsoft PhagsPa', 'Microsoft Sans Serif',
+    'Microsoft Tai Le', 'Microsoft Uighur', 'Microsoft Yi Baiti', 'MingLiU, PMingLiU', 'MingLiU-ExtB, PMingLiU-ExtB',
+    'MingLiU_HKSCS', 'MingLiU_HKSCS-ExtB', 'Miriam, Miriam Fixed', 'Mongolian Baiti', 'MoolBoran',
+    'MS Gothic, MS PGothic', 'MS Mincho, MS PMincho', 'MS UI Gothic', 'MV Boli', 'Myanmar Text', 'Narkisim',
+    'Neue Haas Grotesk Text Pro', 'News Gothic MT', 'Nirmala UI', 'NSimSun', 'Nyala', 'Palatino Linotype', 'Raavi',
+    'Rockwell Nova', 'Rod', 'Sakkal Majalla', 'Sanskrit Text', 'Segoe MDL2 Assets', 'Segoe Print', 'Segoe Script',
+    'Segoe UI', 'Segoe UI Emoji', 'Segoe UI Historic', 'Segoe UI Symbol', 'Shonar Bangla', 'Shruti', 'SimHei', 'SimKai',
+    'Simplified Arabic', 'SimSun', 'SimSun-ExtB', 'Sitka Banner', 'Sitka Display', 'Sitka Heading', 'Sitka Small',
+    'Sitka Subheading', 'Sitka Text', 'Sylfaen', 'Traditional Arabic', 'Tunga', 'UD Digi KyoKasho N-R',
+    'UD Digi KyoKasho NK-R', 'UD Digi KyoKasho NP-R', 'Urdu Typesetting', 'Utsaah', 'Vani', 'Verdana Pro', 'Vijaya',
+    'Vrinda', 'Webdings', 'Westminster', 'Wingdings', 'Yu Gothic', 'Yu Gothic UI', 'Yu Mincho', 'Andale Mono',
+    'BlinkMacSystemFont', 'cursive', 'fantasy', 'DejaVu Serif', 'DejaVu Sans Mono', 'DejaVu Sans', 'Ubuntu Mono',
+    'WenQuanYi Micro Hei', 'Gentium Book Basic', 'Gentium Basic', 'Ubuntu', 'Ubuntu Condensed', 'OpenSymbol',
+    'WenQuanYi Micro Hei Mono'
+  ]
+}, prefs => {
   // split the original string into Unicode segments then evaluate the font-family for each segment
-  let ranges = [['0020', '007F'], ['2580', '259F'], ['00A0', '00FF'], ['25A0', '25FF'], ['0100', '017F'], ['2600', '26FF'], ['0180', '024F'], ['2700', '27BF'], ['0250', '02AF'], ['27C0', '27EF'], ['02B0', '02FF'], ['27F0', '27FF'], ['0300', '036F'], ['2800', '28FF'], ['0370', '03FF'], ['2900', '297F'], ['0400', '04FF'], ['2980', '29FF'], ['0500', '052F'], ['2A00', '2AFF'], ['0530', '058F'], ['2B00', '2BFF'], ['0590', '05FF'], ['2E80', '2EFF'], ['0600', '06FF'], ['2F00', '2FDF'], ['0700', '074F'], ['2FF0', '2FFF'], ['0780', '07BF'], ['3000', '303F'], ['0900', '097F'], ['3040', '309F'], ['0980', '09FF'], ['30A0', '30FF'], ['0A00', '0A7F'], ['3100', '312F'], ['0A80', '0AFF'], ['3130', '318F'], ['0B00', '0B7F'], ['3190', '319F'], ['0B80', '0BFF'], ['31A0', '31BF'], ['0C00', '0C7F'], ['31F0', '31FF'], ['0C80', '0CFF'], ['3200', '32FF'], ['0D00', '0D7F'], ['3300', '33FF'], ['0D80', '0DFF'], ['3400', '4DBF'], ['0E00', '0E7F'], ['4DC0', '4DFF'], ['0E80', '0EFF'], ['4E00', '9FFF'], ['0F00', '0FFF'], ['A000', 'A48F'], ['1000', '109F'], ['A490', 'A4CF'], ['10A0', '10FF'], ['AC00', 'D7AF'], ['1100', '11FF'], ['D800', 'DB7F'], ['1200', '137F'], ['DB80', 'DBFF'], ['13A0', '13FF'], ['DC00', 'DFFF'], ['1400', '167F'], ['E000', 'F8FF'], ['1680', '169F'], ['F900', 'FAFF'], ['16A0', '16FF'], ['FB00', 'FB4F'], ['1700', '171F'], ['FB50', 'FDFF'], ['1720', '173F'], ['FE00', 'FE0F'], ['1740', '175F'], ['FE20', 'FE2F'], ['1760', '177F'], ['FE30', 'FE4F'], ['1780', '17FF'], ['FE50', 'FE6F'], ['1800', '18AF'], ['FE70', 'FEFF'], ['1900', '194F'], ['FF00', 'FFEF'], ['1950', '197F'], ['FFF0', 'FFFF'], ['19E0', '19FF'], ['10000', '1007F'], ['1D00', '1D7F'], ['10080', '100FF'], ['1E00', '1EFF'], ['10100', '1013F'], ['1F00', '1FFF'], ['10300', '1032F'], ['2000', '206F'], ['10330', '1034F'], ['2070', '209F'], ['10380', '1039F'], ['20A0', '20CF'], ['10400', '1044F'], ['20D0', '20FF'], ['10450', '1047F'], ['2100', '214F'], ['10480', '104AF'], ['2150', '218F'], ['10800', '1083F'], ['2190', '21FF'], ['1D000', '1D0FF'], ['2200', '22FF'], ['1D100', '1D1FF'], ['2300', '23FF'], ['1D300', '1D35F'], ['2400', '243F'], ['1D400', '1D7FF'], ['2440', '245F'], ['20000', '2A6DF'], ['2460', '24FF'], ['2F800', '2FA1F'], ['2500', '257F'], ['E0000', 'E007F']];
+  const ranges = [['0020', '007F'], ['2580', '259F'], ['00A0', '00FF'], ['25A0', '25FF'], ['0100', '017F'], ['2600', '26FF'], ['0180', '024F'], ['2700', '27BF'], ['0250', '02AF'], ['27C0', '27EF'], ['02B0', '02FF'], ['27F0', '27FF'], ['0300', '036F'], ['2800', '28FF'], ['0370', '03FF'], ['2900', '297F'], ['0400', '04FF'], ['2980', '29FF'], ['0500', '052F'], ['2A00', '2AFF'], ['0530', '058F'], ['2B00', '2BFF'], ['0590', '05FF'], ['2E80', '2EFF'], ['0600', '06FF'], ['2F00', '2FDF'], ['0700', '074F'], ['2FF0', '2FFF'], ['0780', '07BF'], ['3000', '303F'], ['0900', '097F'], ['3040', '309F'], ['0980', '09FF'], ['30A0', '30FF'], ['0A00', '0A7F'], ['3100', '312F'], ['0A80', '0AFF'], ['3130', '318F'], ['0B00', '0B7F'], ['3190', '319F'], ['0B80', '0BFF'], ['31A0', '31BF'], ['0C00', '0C7F'], ['31F0', '31FF'], ['0C80', '0CFF'], ['3200', '32FF'], ['0D00', '0D7F'], ['3300', '33FF'], ['0D80', '0DFF'], ['3400', '4DBF'], ['0E00', '0E7F'], ['4DC0', '4DFF'], ['0E80', '0EFF'], ['4E00', '9FFF'], ['0F00', '0FFF'], ['A000', 'A48F'], ['1000', '109F'], ['A490', 'A4CF'], ['10A0', '10FF'], ['AC00', 'D7AF'], ['1100', '11FF'], ['D800', 'DB7F'], ['1200', '137F'], ['DB80', 'DBFF'], ['13A0', '13FF'], ['DC00', 'DFFF'], ['1400', '167F'], ['E000', 'F8FF'], ['1680', '169F'], ['F900', 'FAFF'], ['16A0', '16FF'], ['FB00', 'FB4F'], ['1700', '171F'], ['FB50', 'FDFF'], ['1720', '173F'], ['FE00', 'FE0F'], ['1740', '175F'], ['FE20', 'FE2F'], ['1760', '177F'], ['FE30', 'FE4F'], ['1780', '17FF'], ['FE50', 'FE6F'], ['1800', '18AF'], ['FE70', 'FEFF'], ['1900', '194F'], ['FF00', 'FFEF'], ['1950', '197F'], ['FFF0', 'FFFF'], ['19E0', '19FF'], ['10000', '1007F'], ['1D00', '1D7F'], ['10080', '100FF'], ['1E00', '1EFF'], ['10100', '1013F'], ['1F00', '1FFF'], ['10300', '1032F'], ['2000', '206F'], ['10330', '1034F'], ['2070', '209F'], ['10380', '1039F'], ['20A0', '20CF'], ['10400', '1044F'], ['20D0', '20FF'], ['10450', '1047F'], ['2100', '214F'], ['10480', '104AF'], ['2150', '218F'], ['10800', '1083F'], ['2190', '21FF'], ['1D000', '1D0FF'], ['2200', '22FF'], ['1D100', '1D1FF'], ['2300', '23FF'], ['1D300', '1D35F'], ['2400', '243F'], ['1D400', '1D7FF'], ['2440', '245F'], ['20000', '2A6DF'], ['2460', '24FF'], ['2F800', '2FA1F'], ['2500', '257F'], ['E0000', 'E007F']];
   // a font that supports all ranges
   let notdef;
   // to get no effect from other styles and to generate a unique key
@@ -88,8 +130,8 @@
     const detect = (str, lang = '') => {
       const fallback = key(str, 'notdef', lang);
 
-      const list = [...fontStack, ...baseFonts]
-        .filter((s, i, l) => l.indexOf(s) === i);
+      const list = [...fontStack, ...prefs.userFonts, ...prefs.baseFonts]
+        .filter((s, i, l) => s && l.indexOf(s) === i);
       const ref = key(str, style['font-family'], lang);
 
       for (const font of list) {
@@ -173,8 +215,7 @@ weight: ${fontFace['weight']}`;
         catch (e) {}
       }
       canvas.remove();
-      baseFonts = null;
-      ranges = null;
+      ranges.length = 0;
       // report
 
       report(obj);
@@ -188,4 +229,4 @@ weight: ${fontFace['weight']}`;
     document.fonts.add(notdef);
     notdef.load().then(split);
   }
-}
+});

@@ -4,24 +4,24 @@
   const div = document.createElement('div');
   div.id = 'font-finder-embedded-div';
   div.style = `
-    all: inherit;
+    all: reset;
     position: fixed;
     left: 0;
     top: 0;
     width: 100vw;
     height: 100vh;
-    background-color: rgba(0, 0, 0, 0.3);
+    background-color: transparent;
     z-index: 2147483647;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    align-items: end;
+    justify-content: end;
   `;
 
   const iframe = document.createElement('iframe');
-  iframe.src = chrome.runtime.getURL('data/window/index.html?mode=embed');
+  iframe.src = chrome.runtime.getURL('data/window/index.html?mode=embed&id=' + self.id);
   iframe.style = `
-    width: 600px;
-    height: 650px;
+    width: min(600px, calc(100vw - 50px));
+    height: min(700px, calc(100vh - 50px));
     border: none;
     background-color: #fff;
   `;

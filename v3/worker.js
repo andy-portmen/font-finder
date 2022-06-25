@@ -2,7 +2,7 @@
 
 self.importScripts('context.js');
 
-const analyzed = [];
+const analyzed = {};
 
 const notify = e => chrome.notifications.create({
   type: 'basic',
@@ -115,14 +115,15 @@ chrome.runtime.onMessage.addListener((request, sender, respond) => {
     actions.selection(sender.tab, sender);
   }
   else if (request.cmd === 'get') {
-    respond(analyzed.shift());
+    respond(analyzed[request.id]);
   }
   else if (request.cmd === 'analyzed') {
+    const id = Math.random();
     //
     actions.release(sender.tab);
     //
     request.url = sender.tab.url;
-    analyzed.push(request);
+    analyzed[id] = request;
     //
     chrome.runtime.sendMessage('close-inspector', () => chrome.runtime.lastError);
     //
@@ -130,7 +131,7 @@ chrome.runtime.onMessage.addListener((request, sender, respond) => {
       left: 0,
       top: 0,
       width: 600,
-      height: 700,
+      height: 750,
       mode: 'window'
     }, async prefs => {
       if (prefs.mode === 'window') {
@@ -139,7 +140,7 @@ chrome.runtime.onMessage.addListener((request, sender, respond) => {
         const left = prefs.left || (win.left + Math.round((win.width - 500) / 2));
         const top = prefs.top || (win.top + Math.round((win.height - 700) / 2));
         chrome.windows.create({
-          url: 'data/window/index.html?mode=window',
+          url: 'data/window/index.html?mode=window&id=' + id,
           type: 'popup',
           left: Math.max(win.left, left),
           top: Math.max(win.top, top),
@@ -152,8 +153,14 @@ chrome.runtime.onMessage.addListener((request, sender, respond) => {
           target: {
             tabId: sender.tab.id
           },
+          func: id => self.id = id,
+          args: [id]
+        }).then(() => chrome.scripting.executeScript({
+          target: {
+            tabId: sender.tab.id
+          },
           files: ['data/inject/embedded.js']
-        });
+        })).catch(notify);
       }
     });
   }
