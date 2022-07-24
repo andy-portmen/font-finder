@@ -2,6 +2,13 @@ body {
   font-size: 13px;
   font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
 }
+
+@supports (-moz-appearance:none) {
+  body {
+    padding: 10px;
+  }
+}
+
 button,
 input[type=submit],
 input[type=button] {

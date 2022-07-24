@@ -17,7 +17,7 @@ const actions = {
       // is select.js already injected?
       const [r] = await chrome.scripting.executeScript({
         target: {tabId: tab.id},
-        function() {
+        func: () => {
           return !!window.div;
         }
       });

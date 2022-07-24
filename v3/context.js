@@ -10,46 +10,41 @@
       'page': true,
       'find': true
     }, prefs => {
-      if (prefs.selection) {
-        chrome.contextMenus.create({
-          id: 'selection',
-          title: chrome.i18n.getMessage('context_selection'),
-          contexts: ['selection'],
-          documentUrlPatterns: ['*://*/*']
-        });
-      }
-      if (prefs.copy) {
-        chrome.contextMenus.create({
-          id: 'copy',
-          title: chrome.i18n.getMessage('context_copy'),
-          contexts: ['selection'],
-          documentUrlPatterns: ['*://*/*']
-        });
-      }
-      if (prefs.replace) {
-        chrome.contextMenus.create({
-          id: 'replace',
-          title: chrome.i18n.getMessage('context_replace'),
-          contexts: ['selection'],
-          documentUrlPatterns: ['*://*/*']
-        });
-      }
-      if (prefs.page) {
-        chrome.contextMenus.create({
-          id: 'page',
-          title: chrome.i18n.getMessage('context_page'),
-          contexts: ['page'],
-          documentUrlPatterns: ['*://*/*']
-        });
-      }
-      if (prefs.find) {
-        chrome.contextMenus.create({
-          id: 'find',
-          title: chrome.i18n.getMessage('context_find'),
-          contexts: ['page'],
-          documentUrlPatterns: ['*://*/*']
-        });
-      }
+      chrome.contextMenus.create({
+        id: 'selection',
+        title: chrome.i18n.getMessage('context_selection'),
+        contexts: ['selection'],
+        documentUrlPatterns: ['*://*/*'],
+        visible: prefs.selection
+      });
+      chrome.contextMenus.create({
+        id: 'copy',
+        title: chrome.i18n.getMessage('context_copy'),
+        contexts: ['selection'],
+        documentUrlPatterns: ['*://*/*'],
+        visible: prefs.copy
+      });
+      chrome.contextMenus.create({
+        id: 'replace',
+        title: chrome.i18n.getMessage('context_replace'),
+        contexts: ['selection'],
+        documentUrlPatterns: ['*://*/*'],
+        visible: prefs.replace
+      });
+      chrome.contextMenus.create({
+        id: 'page',
+        title: chrome.i18n.getMessage('context_page'),
+        contexts: ['page'],
+        documentUrlPatterns: ['*://*/*'],
+        visible: prefs.page
+      });
+      chrome.contextMenus.create({
+        id: 'find',
+        title: chrome.i18n.getMessage('context_find'),
+        contexts: ['page'],
+        documentUrlPatterns: ['*://*/*'],
+        visible: prefs.find
+      });
       //
       chrome.contextMenus.create({
         id: 'mode:window',
@@ -119,5 +114,33 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
       },
       files: ['data/inject/replace.js']
     }).catch(notify);
+  }
+});
+
+chrome.storage.onChanged.addListener(ps => {
+  if (ps.selection) {
+    chrome.contextMenus.update('selection', {
+      visible: ps.selection.newValue
+    });
+  }
+  if (ps.copy) {
+    chrome.contextMenus.update('copy', {
+      visible: ps.copy.newValue
+    });
+  }
+  if (ps.replace) {
+    chrome.contextMenus.update('replace', {
+      visible: ps.replace.newValue
+    });
+  }
+  if (ps.page) {
+    chrome.contextMenus.update('page', {
+      visible: ps.page.newValue
+    });
+  }
+  if (ps.find) {
+    chrome.contextMenus.update('find', {
+      visible: ps.find.newValue
+    });
   }
 });

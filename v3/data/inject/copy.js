@@ -18,7 +18,7 @@ font-variant-ligatures: ${o.getPropertyValue('font-variant-ligatures')}
 font-variant-numeric: ${o.getPropertyValue('font-variant-numeric')}
 font-weight: ${o.getPropertyValue('font-weight')}
 `;
-    navigator.clipboard.writeText(msg).catch(e => alert('Error: ' + e.message));
+    navigator.clipboard.writeText(msg).catch(e => alert('Error: ' + e.message + '\n\n--\n\n' + msg));
   }
   else {
     alert('Please refresh this tab and retry');
