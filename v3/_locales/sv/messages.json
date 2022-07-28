@@ -96,7 +96,7 @@
         "message": "Full behörighet"
     },
     "options_access": {
-      "message": "Hämta ramelement"
+      "message": "Kom åt Cross-Frame-element"
     },
     "options_access_extra": {
       "message": "Med den här behörigheten kan tillägget inspektera ramelement med olika ursprung"

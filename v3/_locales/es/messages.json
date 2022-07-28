@@ -23,6 +23,9 @@
     "context_window_mode": {
         "message": "Abrir en modo ventana"
     },
+    "context_tutorial": {
+        "message": "Video instructivo"
+    },
     "window_class": {
         "message": "Clase del elemento:"
     },
@@ -91,5 +94,14 @@
     },
     "options_permission": {
         "message": "Permiso total"
+    },
+    "options_access": {
+      "message": "Acceder a elementos de marco cruzado"
+    },
+    "options_access_extra": {
+      "message": "Con este permiso, la extensión puede inspeccionar los elementos de los marcos de origen cruzado"
+    },
+    "options_preview": {
+      "message": "Video instructivo"
     }
 }
