@@ -1,4 +1,4 @@
-/* global Pickr */
+/* global Pickr, fuzzysort */
 
 'use strict';
 
@@ -24,25 +24,70 @@ chrome.runtime.sendMessage({
     document.querySelector('[data-obj=url]').title = analyzed.url;
   for (const e of Object.keys(analyzed.getComputedStyle)) {
     const element = document.querySelector(`[data-obj="${e}"]`);
+
     if (element && e === 'font-family-rendered') {
-      Object.entries(analyzed.getComputedStyle[e])
-        .sort((a, b) => b[1].percent - a[1].percent)
-        .forEach(([fontname, {percent, remote, info}]) => {
-          const div = document.createElement('div');
-          const a = document.createElement('a');
-          a.textContent = fontname;
-          a.dataset.fontname = fontname;
-          a.dataset.cmd = 'open';
-          a.href = '#';
-          const span = document.createElement('span');
-          span.textContent = `${percent.toFixed(1)}% (${remote ? 'remote' : 'local'})`;
-          if (info) {
-            div.title = info;
+      const fonts = analyzed.getComputedStyle[e];
+      Object.entries(fonts).sort((a, b) => () => {
+        return b[1].percent - a[1].percent;
+      }).forEach(([fontname, {percent, remote, info}]) => {
+        const div = document.createElement('div');
+        const a = document.createElement('a');
+        a.textContent = fontname;
+        a.dataset.fontname = fontname;
+        a.dataset.cmd = 'open';
+        a.href = '#';
+        const span = document.createElement('span');
+        span.textContent = `${percent.toFixed(1)}% (${remote ? 'remote' : 'local'})`;
+        if (info) {
+          div.title = info;
+        }
+        div.appendChild(a);
+        div.appendChild(span);
+        element.appendChild(div);
+      });
+      // similar fonts
+      fetch('fuzzysort/families.json').then(r => r.json()).then(({families}) => {
+        const parent = document.querySelector('[data-obj=similar-fonts]');
+
+        for (const query of Object.keys(fonts)) {
+          const results = fuzzysort.go(query, families, {
+            threshold: -100,
+            limit: 8
+          }) || [];
+          for (const {target} of results) {
+            const span = document.createElement('span');
+            span.textContent = target;
+            try {
+              if (document.fonts.check('12px ' + target) === false) {
+                span.classList.add('na');
+                span.title = 'This font is not available on this machine';
+              }
+            }
+            catch (e) {}
+            parent.appendChild(span);
           }
-          div.appendChild(a);
-          div.appendChild(span);
-          element.appendChild(div);
-        });
+        }
+      });
+    }
+    else if (e === 'font-family') {
+      const fonts = analyzed.getComputedStyle[e].split(/\s*,\s*/);
+      const px = analyzed.getComputedStyle['font-size'];
+      for (const font of fonts) {
+        const a = document.createElement('a');
+        a.textContent = font;
+        a.dataset.fontname = font;
+        a.dataset.cmd = 'open';
+        a.href = '#';
+
+        try {
+          if (document.fonts.check(px + ' ' + font) === false) {
+            a.classList.add('na');
+            a.title = 'This font is not available on this machine';
+          }
+        }
+        catch (e) {}
+        element.appendChild(a);
+      }
     }
     else if (element) {
       if (e.indexOf('color') !== -1) {
@@ -109,7 +154,7 @@ chrome.runtime.sendMessage({
     if (cmd === 'open') {
       chrome.runtime.sendMessage({
         cmd: 'open',
-        url: 'https://www.fonts.com/search/all-fonts?ShowAllFonts=All&searchtext=' + target.dataset.fontname,
+        url: 'https://webbrowsertools.com/font-viewer/?family=' + encodeURIComponent(target.dataset.fontname),
         windowId: analyzed.id
       });
     }

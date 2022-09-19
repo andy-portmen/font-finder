@@ -70,6 +70,29 @@ li a {
   color: #0074a5;
   text-decoration: none;
 }
+
+[data-obj=font-family],
+[data-obj=similar-fonts] {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+[data-obj=font-family] a,
+[data-obj=similar-fonts] span {
+  white-space: nowrap;
+}
+[data-obj=font-family] a.na,
+[data-obj=similar-fonts] span.na {
+  text-decoration: line-through;
+  font-style: italic;
+}
+[data-obj=font-family] a:not(:last-child)::after,
+[data-obj=similar-fonts] span:not(:last-child)::after {
+  content: ',';
+  display: inline-block;
+  text-decoration: unset;
+}
+
 [data-obj=font-family-rendered] {
   display: flex;
   flex-direction: column;
