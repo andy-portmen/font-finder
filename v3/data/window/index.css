@@ -50,7 +50,7 @@ li {
   color: var(--fg-li);
   display: flex;
   align-items: center;
-  padding: 2px;
+  padding: 2px 5px;
 }
 li:nth-child(odd) {
   background-color: var(--bg-dark);
@@ -66,7 +66,7 @@ li > span {
 li span {
   color: var(--fg);
 }
-li a {
+li a[href] {
   color: #0074a5;
   text-decoration: none;
 }
@@ -74,7 +74,7 @@ li a {
 [data-obj=font-family],
 [data-obj=similar-fonts] {
   display: flex;
-  gap: 5px;
+  gap: 2px 5px;
   flex-wrap: wrap;
 }
 [data-obj=font-family] a,
@@ -83,7 +83,7 @@ li a {
 }
 [data-obj=font-family] a.na,
 [data-obj=similar-fonts] span.na {
-  text-decoration: line-through;
+  text-decoration: underline dashed;
   font-style: italic;
 }
 [data-obj=font-family] a:not(:last-child)::after,

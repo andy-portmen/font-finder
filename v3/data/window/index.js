@@ -33,9 +33,11 @@ chrome.runtime.sendMessage({
         const div = document.createElement('div');
         const a = document.createElement('a');
         a.textContent = fontname;
-        a.dataset.fontname = fontname;
-        a.dataset.cmd = 'open';
-        a.href = '#';
+        if (fontname && fontname.includes('system') === false) {
+          a.dataset.fontname = fontname;
+          a.dataset.cmd = 'open';
+          a.href = '#';
+        }
         const span = document.createElement('span');
         span.textContent = `${percent.toFixed(1)}% (${remote ? 'remote' : 'local'})`;
         if (info) {
@@ -48,24 +50,37 @@ chrome.runtime.sendMessage({
       // similar fonts
       fetch('fuzzysort/families.json').then(r => r.json()).then(({families}) => {
         const parent = document.querySelector('[data-obj=similar-fonts]');
+        const knownFonts = analyzed.getComputedStyle['font-family'].split(/\s*,\s*/)
+          .map(f => f.toLowerCase());
+
+        const similarFonts = [];
 
         for (const query of Object.keys(fonts)) {
-          const results = fuzzysort.go(query, families, {
+          const results = (fuzzysort.go(query, families, {
             threshold: -100,
-            limit: 8
-          }) || [];
-          for (const {target} of results) {
-            const span = document.createElement('span');
-            span.textContent = target;
-            try {
-              if (document.fonts.check('12px ' + target) === false) {
-                span.classList.add('na');
-                span.title = 'This font is not available on this machine';
-              }
+            limit: 20
+          }) || []);
+
+          similarFonts.push(...results);
+        }
+
+        similarFonts.sort((a, b) => b.score - a.score);
+
+        const newFonts = similarFonts.filter(f => knownFonts.includes(f.target.toLowerCase()) === false)
+          .slice(0, 5)
+          .map(o => o.target);
+
+        for (const fontname of newFonts) {
+          const span = document.createElement('span');
+          span.textContent = fontname;
+          try {
+            if (document.fonts.check('12px ' + fontname) === false) {
+              span.classList.add('na');
+              span.title = 'This font is not available on this machine';
             }
-            catch (e) {}
-            parent.appendChild(span);
           }
+          catch (e) {}
+          parent.appendChild(span);
         }
       });
     }
@@ -75,9 +90,11 @@ chrome.runtime.sendMessage({
       for (const font of fonts) {
         const a = document.createElement('a');
         a.textContent = font;
-        a.dataset.fontname = font;
-        a.dataset.cmd = 'open';
-        a.href = '#';
+        if (font && font.includes('system') === false) {
+          a.dataset.fontname = font;
+          a.dataset.cmd = 'open';
+          a.href = '#';
+        }
 
         try {
           if (document.fonts.check(px + ' ' + font) === false) {
