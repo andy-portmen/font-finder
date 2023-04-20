@@ -16,35 +16,35 @@
         contexts: ['selection'],
         documentUrlPatterns: ['*://*/*'],
         visible: prefs.selection
-      });
+      }, () => chrome.runtime.lastError);
       chrome.contextMenus.create({
         id: 'copy',
         title: chrome.i18n.getMessage('context_copy'),
         contexts: ['selection'],
         documentUrlPatterns: ['*://*/*'],
         visible: prefs.copy
-      });
+      }, () => chrome.runtime.lastError);
       chrome.contextMenus.create({
         id: 'replace',
         title: chrome.i18n.getMessage('context_replace'),
         contexts: ['selection'],
         documentUrlPatterns: ['*://*/*'],
         visible: prefs.replace
-      });
+      }, () => chrome.runtime.lastError);
       chrome.contextMenus.create({
         id: 'page',
         title: chrome.i18n.getMessage('context_page'),
         contexts: ['page'],
         documentUrlPatterns: ['*://*/*'],
         visible: prefs.page
-      });
+      }, () => chrome.runtime.lastError);
       chrome.contextMenus.create({
         id: 'find',
         title: chrome.i18n.getMessage('context_find'),
         contexts: ['page'],
         documentUrlPatterns: ['*://*/*'],
         visible: prefs.find
-      });
+      }, () => chrome.runtime.lastError);
       //
       chrome.contextMenus.create({
         id: 'mode:window',
@@ -52,19 +52,19 @@
         contexts: ['action'],
         type: 'radio',
         checked: prefs.mode === 'window'
-      });
+      }, () => chrome.runtime.lastError);
       chrome.contextMenus.create({
         id: 'mode:embed',
         title: chrome.i18n.getMessage('context_embed_mode'),
         contexts: ['action'],
         type: 'radio',
         checked: prefs.mode !== 'window'
-      });
+      }, () => chrome.runtime.lastError);
       chrome.contextMenus.create({
         id: 'tutorial',
         title: chrome.i18n.getMessage('context_tutorial'),
         contexts: ['action']
-      });
+      }, () => chrome.runtime.lastError);
     });
   };
   chrome.runtime.onInstalled.addListener(once);

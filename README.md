@@ -5,7 +5,7 @@ FontFinder is created for designers, developers, and typographers. It allows a u
 [![YouTube Preview](https://img.youtube.com/vi/CGI3Atdzt64/0.jpg)](https://www.youtube.com/watch?v=CGI3Atdzt64)
 
 ### Links:
-  * Homepage: https://add0n.com/font-finder.html
+  * Homepage: https://webextension.org/listing/font-finder.html
   * Chrome Webstore: https://chrome.google.com/webstore/detail/font-finder/bhiichidigehdgphoambhjbekalahgha
   * Firefox add-ons: https://addons.mozilla.org/en-US/firefox/addon/font-inspect/
   * Opera addons: https://addons.opera.com/en/extensions/details/font-finder/

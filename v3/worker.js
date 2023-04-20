@@ -27,9 +27,9 @@ const actions = {
         chrome.action.setIcon({
           tabId: tab.id,
           path: {
-            '16': 'data/icons/inspect/16.png',
-            '32': 'data/icons/inspect/32.png',
-            '48': 'data/icons/inspect/48.png'
+            '16': '/data/icons/inspect/16.png',
+            '32': '/data/icons/inspect/32.png',
+            '48': '/data/icons/inspect/48.png'
           }
         });
         const target = {
@@ -75,9 +75,9 @@ const actions = {
     chrome.action.setIcon({
       tabId: tab.id,
       path: {
-        '16': 'data/icons/16.png',
-        '32': 'data/icons/32.png',
-        '48': 'data/icons/48.png'
+        '16': '/data/icons/16.png',
+        '32': '/data/icons/32.png',
+        '48': '/data/icons/48.png'
       }
     });
     chrome.tabs.sendMessage(tab.id, 'release', () => chrome.runtime.lastError);
@@ -86,7 +86,7 @@ const actions = {
         tabId: tab.id,
         allFrames: true
       },
-      files: ['data/inject/release.js']
+      files: ['/data/inject/release.js']
     });
   }
 };
@@ -140,7 +140,7 @@ chrome.runtime.onMessage.addListener((request, sender, respond) => {
         const left = prefs.left || (win.left + Math.round((win.width - 500) / 2));
         const top = prefs.top || (win.top + Math.round((win.height - 700) / 2));
         chrome.windows.create({
-          url: 'data/window/index.html?mode=window&id=' + id,
+          url: '/data/window/index.html?mode=window&id=' + id,
           type: 'popup',
           left: Math.max(win.left, left),
           top: Math.max(win.top, top),
@@ -159,7 +159,7 @@ chrome.runtime.onMessage.addListener((request, sender, respond) => {
           target: {
             tabId: sender.tab.id
           },
-          files: ['data/inject/embedded.js']
+          files: ['/data/inject/embedded.js']
         })).catch(notify);
       }
     });

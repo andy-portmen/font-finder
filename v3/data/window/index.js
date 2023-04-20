@@ -169,11 +169,13 @@ chrome.runtime.sendMessage({
   document.addEventListener('click', ({target}) => {
     const cmd = target.dataset.cmd;
     if (cmd === 'open') {
-      chrome.runtime.sendMessage({
+      chrome.storage.local.get({
+        'font-viewer': 'https://webbrowsertools.com/font-viewer/?family=[family]'
+      }, prefs => chrome.runtime.sendMessage({
         cmd: 'open',
-        url: 'https://webbrowsertools.com/font-viewer/?family=' + encodeURIComponent(target.dataset.fontname),
+        url: prefs['font-viewer'].replace('[family]', encodeURIComponent(target.dataset.fontname)),
         windowId: analyzed.id
-      });
+      }));
     }
   });
 
