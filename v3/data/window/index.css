@@ -4,6 +4,7 @@
   --bg-dark: #f5f5f5;
   --fg: #222;
   --fg-li: #d13333;
+  --link: #0074a5;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -13,6 +14,7 @@
     --bg-dark: #292a2d;
     --fg: #a3aab1;
     --fg-li: #c27c58;
+    --link: #3e94b8;
   }
 }
 
@@ -67,7 +69,7 @@ li span {
   color: var(--fg);
 }
 li a[href] {
-  color: #0074a5;
+  color: var(--link);
   text-decoration: none;
 }
 
@@ -84,7 +86,6 @@ li a[href] {
 [data-obj=font-family] a.na,
 [data-obj=similar-fonts] span.na {
   text-decoration: underline dashed;
-  font-style: italic;
 }
 [data-obj=font-family] a:not(:last-child)::after,
 [data-obj=similar-fonts] span:not(:last-child)::after {

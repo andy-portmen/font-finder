@@ -12,6 +12,51 @@ function rgb2hex(rgb) {
     parseInt(rgb[3]).toString(16).padStart(2, '0') : rgb;
 }
 
+function fontType(href) {
+  href = href.toLowerCase();
+
+  const extensions = ['woff2', 'woff', 'eot', 'ttf', 'ttf', 'otf', 'pfb', 'pfm'];
+
+  // accurate
+  for (const ext of extensions) {
+    if (href.includes('.' + ext) || href.includes('data:font/' + ext)) {
+      return ext;
+    }
+  }
+  // inaccurate
+  for (const ext of extensions) {
+    if (href.includes(ext)) {
+      return ext;
+    }
+  }
+
+  if (href.includes('woff2')) {
+    return 'woff2';
+  }
+  if (href.includes('woff')) {
+    return 'woff'; // Web Open Font Format
+  }
+  if (href.includes('eot')) {
+    return 'eot';
+  }
+  if (href.includes('ttf')) {
+    return 'ttf'; // TrueType Font
+  }
+  if (href.includes('ttf')) {
+    return 'ttc'; // TrueType Collection (TrueType font)
+  }
+  if (href.includes('otf')) {
+    return 'otf'; // OpenType (TrueType font)
+  }
+  if (href.includes('pfb')) {
+    return 'pfb'; // Printer Font Binary (PostScript Font)
+  }
+  if (href.includes('pfm')) {
+    return 'pfm'; // Printer Font Metrics (PostScript Font)
+  }
+  return '';
+}
+
 chrome.runtime.sendMessage({
   cmd: 'get',
   id: args.get('id')
@@ -19,6 +64,8 @@ chrome.runtime.sendMessage({
   if (!analyzed) {
     document.title = 'Expired! Please run a new inspection';
   }
+
+  console.log(analyzed);
 
   document.querySelector('[data-obj=url]').textContent =
     document.querySelector('[data-obj=url]').title = analyzed.url;
@@ -33,13 +80,14 @@ chrome.runtime.sendMessage({
         const div = document.createElement('div');
         const a = document.createElement('a');
         a.textContent = fontname;
+
         if (fontname && fontname.includes('system') === false) {
           a.dataset.fontname = fontname;
           a.dataset.cmd = 'open';
           a.href = '#';
         }
         const span = document.createElement('span');
-        span.textContent = `${percent.toFixed(1)}% (${remote ? 'remote' : 'local'})`;
+        span.textContent = `${percent.toFixed(1)}% (${remote ? 'web font' : 'local'})`;
         if (info) {
           div.title = info;
         }
@@ -90,6 +138,13 @@ chrome.runtime.sendMessage({
       for (const font of fonts) {
         const a = document.createElement('a');
         a.textContent = font;
+        const f = analyzed.bio.filter(a => a.fontFamily === font).shift();
+        if (f) {
+          const type = fontType(f.fontUrl);
+          if (type) {
+            a.textContent += ' (' + type + ')';
+          }
+        }
         if (font && font.includes('system') === false) {
           a.dataset.fontname = font;
           a.dataset.cmd = 'open';
