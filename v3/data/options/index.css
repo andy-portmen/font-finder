@@ -1,39 +1,58 @@
 body {
-  font-size: 13px;
-  font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+  font-size: 14px;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif;
+  background-color: #fff;
+  color: #4d5156;
+  width: min(100% - 2rem, 70rem);
+  margin-inline: auto;
+  padding-top: 10px;
 }
-
-@supports (-moz-appearance:none) {
-  body {
-    padding: 10px;
-  }
-}
-
+select,
 button,
 input[type=submit],
 input[type=button] {
-  height: 24px;
+  height: 28px;
   color: #444;
   background-image: linear-gradient(rgb(237, 237, 237), rgb(237, 237, 237) 38%, rgb(222, 222, 222));
   box-shadow: rgba(0, 0, 0, 0.08) 0 1px 0, rgba(255, 255, 255, 0.75) 0 1px 2px inset;
   text-shadow: rgb(240, 240, 240) 0 1px 0;
+}
+select,
+button,
+textarea,
+input {
   border: solid 1px rgba(0, 0, 0, 0.25);
-  cursor: pointer;
 }
 input[type=button]:disabled {
   opacity: 0.5;
 }
-
-hr {
-  border: none;
-  border-top: dashed 1px #ccc;
-  padding-bottom: 3px;
+textarea {
+  width: 100%;
+  box-sizing: border-box;
+  display: block;
+}
+textarea,
+input[type=text],
+input[type=number] {
+  padding: 5px;
+  outline: none;
+}
+textarea:focus,
+input[type=text]:focus,
+input[type=number]:focus {
+  background-color: #e5f8ff;
+}
+a,
+a:visited {
+  color: #07c;
 }
 
-ol {
-  padding: 0 20px;
+.two {
+  display: grid;
+  grid-template-columns: min-content 1fr;
+  grid-gap: 1ch;
+  align-items: baseline;
 }
-
 .hidden {
   display: none;
 }

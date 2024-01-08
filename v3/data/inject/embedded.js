@@ -4,11 +4,11 @@
   const div = document.createElement('div');
   div.id = 'font-finder-embedded-div';
   div.style = `
-    all: reset;
+    all: initial;
     position: fixed;
     left: 0;
     top: 0;
-    width: 100vw;
+    width: calc(100vw - 22px);
     height: 100vh;
     background-color: transparent;
     z-index: 2147483647;

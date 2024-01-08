@@ -65,8 +65,6 @@ chrome.runtime.sendMessage({
     document.title = 'Expired! Please run a new inspection';
   }
 
-  console.log(analyzed);
-
   document.querySelector('[data-obj=url]').textContent =
     document.querySelector('[data-obj=url]').title = analyzed.url;
   for (const e of Object.keys(analyzed.getComputedStyle)) {
