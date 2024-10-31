@@ -1,5 +1,107 @@
 {
-  "app_description": {
-    "message": "Ein einfach zu bedienender Schriftinspektor, um CSS-Stile des ausgewählten Elements zu erhalten"
-  }
+    "app_description": {
+        "message": "Ein einfach zu bedienender Schriftartinspektor, um CSS-Stile des ausgewählten Elements zu erhalten"
+    },
+    "context_copy": {
+        "message": "Schriftartdetails kopieren"
+    },
+    "context_embed_mode": {
+        "message": "Im Embedded-Modus öffnen"
+    },
+    "context_find": {
+        "message": "Schriftarten in diesem Frame finden"
+    },
+    "context_page": {
+        "message": "Untersuche Schriftart"
+    },
+    "context_replace": {
+        "message": "Ersetze Schriftart mit"
+    },
+    "context_selection": {
+        "message": "Analysiere Auswahl"
+    },
+    "context_window_mode": {
+        "message": "In Fenster-Modus öffnen"
+    },
+    "context_tutorial": {
+        "message": "Benutzungsanleitung"
+    },
+    "window_class": {
+        "message": "Element-Klasse:"
+    },
+    "window_color": {
+        "message": "Farbe"
+    },
+    "window_decoration": {
+        "message": "Dekoration"
+    },
+    "window_element": {
+        "message": "Element-Details"
+    },
+    "window_font": {
+        "message": "Schriftart"
+    },
+    "window_id": {
+        "message": "Element-ID:"
+    },
+    "window_inspect": {
+        "message": "Untersuche:"
+    },
+    "window_rendered": {
+        "message": "Gerenderte Schriftart:"
+    },
+    "window_spacing": {
+        "message": "Abstand"
+    },
+    "window_title": {
+        "message": "Inspektor :: Schriftart-Finder"
+    },
+    "window_type": {
+        "message": "Elementtyp:"
+    },
+    "options_copy": {
+        "message": "Kontextmenüeintrag 'Schriftdetails kopieren' anzeigen"
+    },
+    "options_find": {
+        "message": "Kontextmenüeintrag \"Schriftarten in diesem Frame suchen\" anzeigen"
+    },
+    "options_page": {
+        "message": "Kontextmenüeintrag 'Schriftart untersuchen' anzeigen"
+    },
+    "options_replace": {
+        "message": "Kontextmenüeintrag 'Schriftart ersetzen durch' anzeigen"
+    },
+    "options_selection": {
+        "message": "Kontextmenüeintrag 'Auswahl analysieren' anzeigen"
+    },
+    "options_faqs": {
+        "message": "FAQ-Seite zu Updates öffnen"
+    },
+    "options_support": {
+        "message": "Entwicklung unterstützen"
+    },
+    "options_reset": {
+        "message": "Zurücksetzen"
+    },
+    "options_save": {
+        "message": "Speicher-Optionen"
+    },
+    "options_restart": {
+        "message": "Neustart notwendig"
+    },
+    "options_reload": {
+        "message": "Neu laden"
+    },
+    "options_permission": {
+        "message": "Vollzugriff"
+    },
+    "options_access": {
+      "message": "Auf Frame-übergreifende Elemente zugreifen"
+    },
+    "options_access_extra": {
+      "message": "Mit dieser Erlaubnis kann die Erweiterung Frame-Elemente aus verschiedenen Quellen (Cross-Origin) untersuchen"
+    },
+    "options_preview": {
+      "message": "Nutzungs-Vorschau"
+    }
 }

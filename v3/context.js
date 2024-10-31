@@ -2,6 +2,11 @@
 
 {
   const once = () => {
+    if (once.done) {
+      return;
+    }
+    once.done = true;
+
     chrome.storage.local.get({
       'mode': 'window',
       'selection': true,

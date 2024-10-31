@@ -3,6 +3,11 @@
 'use strict';
 
 const args = new URLSearchParams(location.search);
+const toast = msg => {
+  document.title = msg;
+  clearTimeout(toast.id);
+  toast.id = setTimeout(() => document.title = chrome.i18n.getMessage('window_title'), 750);
+};
 
 function rgb2hex(rgb) {
   rgb = rgb.match(/^rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?/i);
@@ -62,7 +67,10 @@ chrome.runtime.sendMessage({
   id: args.get('id')
 }, analyzed => {
   if (!analyzed) {
-    document.title = 'Expired! Please run a new inspection';
+    const msg = 'Expired! Please run a new inspection on the page';
+    document.title = msg;
+    setTimeout(alert, 300, msg);
+    return;
   }
 
   document.querySelector('[data-obj=url]').textContent =
@@ -221,6 +229,7 @@ chrome.runtime.sendMessage({
 
   document.addEventListener('click', ({target}) => {
     const cmd = target.dataset.cmd;
+    console.log(cmd);
     if (cmd === 'open') {
       chrome.storage.local.get({
         'font-viewer': 'https://webbrowsertools.com/font-viewer/?family=[family]'
@@ -293,5 +302,20 @@ chrome.storage.local.get({
 }, prefs => {
   if (prefs.userFontsAccess === true && typeof queryLocalFonts !== 'undefined') {
     document.getElementById('userFonts').classList.remove('hidden');
+  }
+});
+
+// copy
+document.addEventListener('click', async e => {
+  const target = e.target;
+
+  if (target.dataset.obj && target.textContent.trim()) {
+    try {
+      await navigator.clipboard.writeText(target.textContent);
+      toast('"' + target.dataset.obj + '" ' + chrome.i18n.getMessage('window_copy'));
+    }
+    catch (e) {
+      toast(e.message);
+    }
   }
 });

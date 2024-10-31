@@ -59,6 +59,12 @@
     "window_type": {
         "message": "Element Type:"
     },
+    "window_copy": {
+        "message": "value is copied to the clipboard"
+    },
+    "window_footer": {
+        "message": "Click values to copy"
+    },
     "options_copy": {
         "message": "Show 'Copy Font Details' context-menu item"
     },

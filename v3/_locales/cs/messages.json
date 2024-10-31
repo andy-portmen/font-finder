@@ -1,0 +1,107 @@
+{
+    "app_description": {
+        "message": "Lehce použitelný inspektor fontu pro zjištění CSS stylů vybraných prvků"
+    },
+    "context_copy": {
+        "message": "Zkopírovat detaily fontu"
+    },
+    "context_embed_mode": {
+        "message": "Otevřít ve vestavěném režimu"
+    },
+    "context_find": {
+        "message": "Hledat fonty v tomto okně"
+    },
+    "context_page": {
+        "message": "Prozkoumat font"
+    },
+    "context_replace": {
+        "message": "Nahradit font"
+    },
+    "context_selection": {
+        "message": "Analyzovat výběr"
+    },
+    "context_window_mode": {
+        "message": "Otevřít v zobrazení v okně"
+    },
+    "context_tutorial": {
+        "message": "Návod na použití"
+    },
+    "window_class": {
+        "message": "Třída prvku:"
+    },
+    "window_color": {
+        "message": "Barva"
+    },
+    "window_decoration": {
+        "message": "Dekorace"
+    },
+    "window_element": {
+        "message": "Detaily prvku"
+    },
+    "window_font": {
+        "message": "Font"
+    },
+    "window_id": {
+        "message": "ID elementu:"
+    },
+    "window_inspect": {
+        "message": "Inspekce:"
+    },
+    "window_rendered": {
+        "message": "Font je vykreslován:"
+    },
+    "window_spacing": {
+        "message": "Mezery"
+    },
+    "window_title": {
+        "message": "Inspektor :: Font Finder"
+    },
+    "window_type": {
+        "message": "Druh prvku:"
+    },
+    "options_copy": {
+        "message": "Zobrazit položku kontextového menu ,,Zkopírovat detaily fontu\" "
+    },
+    "options_find": {
+        "message": "Zobrazit položku kontextového menu ,,Hledat fonty v tomto okně\" "
+    },
+    "options_page": {
+        "message": "Zobrazit položku kontextového menu ,,Prozkoumat font\" "
+    },
+    "options_replace": {
+        "message": "Zobrazit položku kontextového menu ,,Nahradit font\" "
+    },
+    "options_selection": {
+        "message": "Zobrazit položku kontextového menu ,,Analyzovat výběr\" "
+    },
+    "options_faqs": {
+        "message": "Otevřít FAQ stránku s aktualizacemi"
+    },
+    "options_support": {
+        "message": "Podpořte vývoj"
+    },
+    "options_reset": {
+        "message": "Tovární nastavení"
+    },
+    "options_save": {
+        "message": "Uložit možnosti"
+    },
+    "options_restart": {
+        "message": "Vyžadován restart"
+    },
+    "options_reload": {
+        "message": "Načíst znovu"
+    },
+    "options_permission": {
+        "message": "Úplný přístup"
+    },
+    "options_access": {
+      "message": "Získat přístup k prvkům různého původu"
+    },
+    "options_access_extra": {
+      "message": "S tímto povolením může rozšíření prozkoumávat prvky v okně různého původu."
+    },
+    "options_preview": {
+      "message": "Náhled užití"
+    }
+}
