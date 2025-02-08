@@ -1,0 +1,16 @@
+@font-face {
+  font-family: PF Regal;
+  font-style: normal;
+  src: url(data:font/woff;base64,ZXhwb3J0IGRlZmF1bHQgX193ZWJwYWNrX3B1YmxpY19wYXRoX18gKyAiZm9udHMvUEZSZWdhbFRleHRQcm8tUmVndWxhckItdjEud29mZiI7) format("woff")
+}
+
+@font-face {
+  font-family: PF Regal;
+  font-style: normal;
+  src: url(https://meduza.io/fonts/PFRegalTextPro-RegularB-v1.woff) format("woff")
+}
+
+p * {
+  font-family: PF Regal, PF Regal Text Pro, Georgia, serif;
+  font-size: 24px;
+}

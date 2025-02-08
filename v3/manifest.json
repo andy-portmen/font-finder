@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Font Finder",
-  "version": "0.5.9",
+  "version": "0.6.0",
   "description": "__MSG_app_description__",
   "default_locale": "en",
   "permissions": [
@@ -15,7 +15,11 @@
     "<all_urls>"
   ],
   "background": {
-    "service_worker": "worker.js"
+    "service_worker": "worker.js",
+    "scripts": [
+      "context.js",
+      "worker.js"
+    ]
   },
   "action": {},
   "homepage_url": "https://webextension.org/listing/font-finder.html",
@@ -40,5 +44,11 @@
   },
   "commands": {
     "_execute_action": {}
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "{a658a273-612e-489e-b4f1-5344e672f4f5}",
+      "strict_min_version": "128.0"
+    }
   }
 }

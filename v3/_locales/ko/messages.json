@@ -1,0 +1,113 @@
+{
+  "app_description": {
+    "message": "선택한 요소의 CSS 스타일을 확인하는 간편한 폰트 검사기"
+  },
+  "context_copy": {
+    "message": "폰트 정보 복사"
+  },
+  "context_embed_mode": {
+    "message": "임베드 모드로 열기"
+  },
+  "context_find": {
+    "message": "이 프레임에서 폰트 찾기"
+  },
+  "context_page": {
+    "message": "폰트 검사"
+  },
+  "context_replace": {
+    "message": "폰트를 다음으로 교체"
+  },
+  "context_selection": {
+    "message": "선택 영역 분석"
+  },
+  "context_window_mode": {
+    "message": "창 모드로 열기"
+  },
+  "context_tutorial": {
+    "message": "사용 방법 안내"
+  },
+  "window_class": {
+    "message": "요소 클래스:"
+  },
+  "window_color": {
+    "message": "색상"
+  },
+  "window_decoration": {
+    "message": "장식"
+  },
+  "window_element": {
+    "message": "요소 세부 정보"
+  },
+  "window_font": {
+    "message": "폰트"
+  },
+  "window_id": {
+    "message": "요소 ID:"
+  },
+  "window_inspect": {
+    "message": "검사 중:"
+  },
+  "window_rendered": {
+    "message": "렌더링된 폰트:"
+  },
+  "window_spacing": {
+    "message": "간격"
+  },
+  "window_title": {
+    "message": "검사기 :: 폰트 찾기"
+  },
+  "window_type": {
+    "message": "요소 유형:"
+  },
+  "window_copy": {
+    "message": "값이 클립보드에 복사되었습니다"
+  },
+  "window_footer": {
+    "message": "값을 클릭하여 복사"
+  },
+  "options_copy": {
+    "message": "'폰트 정보 복사' 메뉴 항목 표시"
+  },
+  "options_find": {
+    "message": "'이 프레임에서 폰트 찾기' 메뉴 항목 표시"
+  },
+  "options_page": {
+    "message": "'폰트 검사' 메뉴 항목 표시"
+  },
+  "options_replace": {
+    "message": "'폰트를 다음으로 교체' 메뉴 항목 표시"
+  },
+  "options_selection": {
+    "message": "'선택 영역 분석' 메뉴 항목 표시"
+  },
+  "options_faqs": {
+    "message": "업데이트 시 FAQ 페이지 열기"
+  },
+  "options_support": {
+    "message": "개발 지원"
+  },
+  "options_reset": {
+    "message": "공장 초기화"
+  },
+  "options_save": {
+    "message": "옵션 저장"
+  },
+  "options_restart": {
+    "message": "재시작 필요"
+  },
+  "options_reload": {
+    "message": "다시 로드"
+  },
+  "options_permission": {
+    "message": "전체 권한"
+  },
+  "options_access": {
+    "message": "교차 프레임 요소 접근"
+  },
+  "options_access_extra": {
+    "message": "이 권한을 통해 확장 프로그램은 교차 출처 프레임 요소를 검사할 수 있습니다"
+  },
+  "options_preview": {
+    "message": "사용 미리보기"
+  }
+}

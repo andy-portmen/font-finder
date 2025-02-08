@@ -221,7 +221,8 @@ chrome.runtime.sendMessage({
   }
 
   if (analyzed.complex) {
-    document.getElementById('msg').textContent = 'A complex element is selected';
+    document.getElementById('msg').textContent =
+      'A complex element is selected. To view font details of child nodes, select the node directly.';
   }
   else {
     document.getElementById('msg').remove();
@@ -229,7 +230,6 @@ chrome.runtime.sendMessage({
 
   document.addEventListener('click', ({target}) => {
     const cmd = target.dataset.cmd;
-    console.log(cmd);
     if (cmd === 'open') {
       chrome.storage.local.get({
         'font-viewer': 'https://webbrowsertools.com/font-viewer/?family=[family]'

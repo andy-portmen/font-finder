@@ -1,6 +1,8 @@
 'use strict';
 
-self.importScripts('context.js');
+if (typeof importScripts !== 'undefined') {
+  self.importScripts('context.js');
+}
 
 const analyzed = {};
 

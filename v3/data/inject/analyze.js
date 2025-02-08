@@ -27,7 +27,7 @@
       }
     }
     catch (e) {
-      console.log(e, stylesheet, stylesheet.href);
+      console.error(e, stylesheet, stylesheet.href);
     }
   }
 
@@ -103,17 +103,14 @@
       // remove old inspect
       delete window.aElement;
     }
-    console.log('Selected Note', aElement);
+    console.info('Selected Node', aElement);
 
-    // generate a unique key for eeach font-family
-    const key = (str, fonts, lang) => {
+    // generate a unique key for each font-family
+    const key = (str, size, fonts, lang) => {
       canvas.lang = lang;
-      // clear the canvas
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      // draw new text
-      ctx.font = '128px ' + fonts;
-      ctx.fillText(str, 0, 128);
-      return canvas.toDataURL();
+      ctx.font = size + ' ' + fonts;
+      const {width, actualBoundingBoxAscent, actualBoundingBoxDescent} = ctx.measureText(str);
+      return [width, actualBoundingBoxAscent, actualBoundingBoxDescent].join('-');
     };
 
     if (aElement) {
@@ -164,16 +161,16 @@
       }, () => chrome.runtime.lastError);
 
       // detect the font-family
-      const detect = (str, lang = '') => {
-        const fallback = key(str, 'notdef', lang);
+      const detect = (str, size, lang = '') => {
+        const fallback = key(str, size, 'notdef', lang);
 
         const list = [...fontStack, ...prefs.userFonts, ...prefs.baseFonts]
           .filter((s, i, l) => s && l.indexOf(s) === i);
-        const ref = key(str, style['font-family'], lang);
+        const ref = key(str, size, style['font-family'], lang);
 
         for (const font of list) {
-          if (key(str, font, lang) === ref && // font is equal to the referenced font
-            key(str, `"${font}",notdef`, lang) !== fallback /* is a known font */) {
+          if (key(str, size, font, lang) === ref && // font is equal to the referenced font
+            key(str, size, `"${font}",notdef`, lang) !== fallback /* is a known font */) {
             return font;
           }
         }
@@ -215,13 +212,12 @@
             }
           }
         }
-        // console.log(segments);
         // detect
         const obj = {};
         const tot = segments.reduce((p, c) => p + c.length, 0);
         for (const str of segments) {
           const e = aElement.closest('[lang]'); // do we have a lang attribute
-          const fonts = detect(str, e ? e.lang : '');
+          const fonts = detect(str, style['font-size'], e ? e.lang : '');
           obj[fonts] = obj[fonts] || {
             percent: 0,
             remote: false,
@@ -234,6 +230,7 @@
         // remote fonts
         for (const name of Object.keys(obj)) {
           const f = style['font-size'] + ' "' + name + '"';
+          // possible remote font
           try {
             const fontFace = (await document.fonts.load(f))[0];
             if (fontFace) {
@@ -250,7 +247,12 @@
   weight: ${fontFace['weight']}`;
             }
           }
-          catch (e) {}
+          catch (e) {
+            console.error('Failed to get font details', f, e);
+            // If the font fails to load, it's not local
+            obj[name].remote = true;
+            obj[name].info = 'FontFace details not available: ' + e.message;
+          }
         }
         canvas.remove();
         ranges.length = 0;
@@ -269,8 +271,3 @@
     }
   });
 }
-
-
-
-
-
