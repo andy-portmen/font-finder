@@ -6,12 +6,37 @@ if (typeof importScripts !== 'undefined') {
 
 const analyzed = {};
 
-const notify = e => chrome.notifications.create({
-  type: 'basic',
-  iconUrl: '/data/icons/48.png',
-  title: chrome.runtime.getManifest().name,
-  message: e.message || e
-}, id => setTimeout(chrome.notifications.clear, 3000, id));
+const notify = async e => {
+  try {
+    const id = await chrome.notifications.create({
+      type: 'basic',
+      iconUrl: '/data/icons/48.png',
+      title: chrome.runtime.getManifest().name,
+      message: e.message || e
+    });
+    setTimeout(() => chrome.notifications.clear(id), 3000);
+  }
+  catch (ee) {
+    const [tab] = await chrome.tabs.query({
+      active: true,
+      lastFocusedWindow: true
+    });
+    if (tab) {
+      chrome.action.setBadgeText({
+        tabId: tab.id,
+        text: 'E'
+      });
+      chrome.action.setTitle({
+        tabId: tab.id,
+        title: e.message || e
+      });
+      chrome.action.setBadgeBackgroundColor({
+        tabId: tab.id,
+        color: 'red'
+      });
+    }
+  }
+};
 
 const actions = {
   async page(tab, info) {
@@ -23,6 +48,9 @@ const actions = {
           return !!window.div;
         }
       });
+      if (r && r.error) {
+        throw Error(r.error);
+      }
       // inject select.js
       if (r && r.result === false) {
         // change icon
@@ -175,27 +203,31 @@ chrome.runtime.onMessage.addListener((request, sender, respond) => {
 
 /* FAQs & Feedback */
 {
-  const {management, runtime: {onInstalled, setUninstallURL, getManifest}, storage, tabs} = chrome;
+  chrome.management = chrome.management || {
+    getSelf(c) {
+      c({installType: 'normal'});
+    }
+  };
   if (navigator.webdriver !== true) {
-    const {homepage_url: page, name, version} = getManifest();
-    onInstalled.addListener(({reason, previousVersion}) => {
-      management.getSelf(({installType}) => installType === 'normal' && storage.local.get({
+    const {homepage_url: page, name, version} = chrome.runtime.getManifest();
+    chrome.runtime.onInstalled.addListener(({reason, previousVersion}) => {
+      chrome.management.getSelf(({installType}) => installType === 'normal' && chrome.storage.local.get({
         'faqs': true,
         'last-update': 0
       }, prefs => {
         if (reason === 'install' || (prefs.faqs && reason === 'update')) {
           const doUpdate = (Date.now() - prefs['last-update']) / 1000 / 60 / 60 / 24 > 45;
           if (doUpdate && previousVersion !== version) {
-            tabs.query({active: true, lastFocusedWindow: true}, tbs => tabs.create({
+            chrome.tabs.query({active: true, lastFocusedWindow: true}, tbs => chrome.tabs.create({
               url: page + '?version=' + version + (previousVersion ? '&p=' + previousVersion : '') + '&type=' + reason,
               active: reason === 'install',
               ...(tbs && tbs.length && {index: tbs[0].index + 1})
             }));
-            storage.local.set({'last-update': Date.now()});
+            chrome.storage.local.set({'last-update': Date.now()});
           }
         }
       }));
     });
-    setUninstallURL(page + '?rd=feedback&name=' + encodeURIComponent(name) + '&version=' + version);
+    chrome.runtime.setUninstallURL(page + '?rd=feedback&name=' + encodeURIComponent(name) + '&version=' + version);
   }
 }

@@ -74,6 +74,11 @@
       'BlinkMacSystemFont', 'cursive', 'fantasy', 'DejaVu Serif', 'DejaVu Sans Mono', 'DejaVu Sans', 'Ubuntu Mono',
       'WenQuanYi Micro Hei', 'Gentium Book Basic', 'Gentium Basic', 'Ubuntu', 'Ubuntu Condensed', 'OpenSymbol',
       'WenQuanYi Micro Hei Mono'
+    ],
+    // Fonts commonly faked by Windows browsers. We need to put them first, to make sure Windows browsers are not
+    // pretending to support a font by substituting them silently with local alternatives (e.g. Helvetica -> Helvetica, Times -> Times New Roman)
+    pretendedFonts: [
+      'Arial', 'Times New Roman', 'Courier New', 'Tahoma', 'Lucida Sans Unicode', 'Segoe UI'
     ]
   }, prefs => {
     // split the original string into Unicode segments then evaluate the font-family for each segment
@@ -164,7 +169,7 @@
       const detect = (str, size, lang = '') => {
         const fallback = key(str, size, 'notdef', lang);
 
-        const list = [...fontStack, ...prefs.userFonts, ...prefs.baseFonts]
+        const list = [...prefs.pretendedFonts, ...fontStack, ...prefs.userFonts, ...prefs.baseFonts]
           .filter((s, i, l) => s && l.indexOf(s) === i);
         const ref = key(str, size, style['font-family'], lang);
 
