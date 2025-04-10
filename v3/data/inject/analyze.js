@@ -75,8 +75,7 @@
       'WenQuanYi Micro Hei', 'Gentium Book Basic', 'Gentium Basic', 'Ubuntu', 'Ubuntu Condensed', 'OpenSymbol',
       'WenQuanYi Micro Hei Mono'
     ],
-    // Fonts commonly faked by Windows browsers. We need to put them first, to make sure Windows browsers are not
-    // pretending to support a font by substituting them silently with local alternatives (e.g. Helvetica -> Helvetica, Times -> Times New Roman)
+    // Fonts commonly faked by Windows browsers (e.g. Helvetica -> Helvetica, Times -> Times New Roman)
     pretendedFonts: [
       'Arial', 'Times New Roman', 'Courier New', 'Tahoma', 'Lucida Sans Unicode', 'Segoe UI'
     ]
@@ -113,9 +112,10 @@
     // generate a unique key for each font-family
     const key = (str, size, fonts, lang) => {
       canvas.lang = lang;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.font = size + ' ' + fonts;
-      const {width, actualBoundingBoxAscent, actualBoundingBoxDescent} = ctx.measureText(str);
-      return [width, actualBoundingBoxAscent, actualBoundingBoxDescent].join('-');
+      ctx.fillText(str, 0, 128);
+      return canvas.toDataURL();
     };
 
     if (aElement) {
@@ -169,17 +169,26 @@
       const detect = (str, size, lang = '') => {
         const fallback = key(str, size, 'notdef', lang);
 
-        const list = [...prefs.pretendedFonts, ...fontStack, ...prefs.userFonts, ...prefs.baseFonts]
+        const list = [...fontStack, ...prefs.userFonts, ...prefs.baseFonts]
           .filter((s, i, l) => s && l.indexOf(s) === i);
         const ref = key(str, size, style['font-family'], lang);
 
         for (const font of list) {
           if (key(str, size, font, lang) === ref && // font is equal to the referenced font
             key(str, size, `"${font}",notdef`, lang) !== fallback /* is a known font */) {
-            return font;
+            const fonts = [font];
+
+            // What if the font is a pretended font
+            for (const p of prefs.pretendedFonts) {
+              if (p !== font && key(str, size, p, lang) === ref) {
+                fonts.push(p);
+              }
+            }
+
+            return fonts;
           }
         }
-        return 'System Default';
+        return ['System Default'];
       };
       // split into segments
       const split = async () => {
@@ -222,13 +231,14 @@
         const tot = segments.reduce((p, c) => p + c.length, 0);
         for (const str of segments) {
           const e = aElement.closest('[lang]'); // do we have a lang attribute
-          const fonts = detect(str, style['font-size'], e ? e.lang : '');
-          obj[fonts] = obj[fonts] || {
+          const [font, ...pretends] = detect(str, style['font-size'], e ? e.lang : '');
+          obj[font] = obj[font] || {
             percent: 0,
             remote: false,
             info: ''
           };
-          obj[fonts].percent += str.length / tot * 100;
+          obj[font].percent += str.length / tot * 100;
+          obj[font].pretends = pretends;
         }
         // clean up
         document.fonts.delete(notdef);
@@ -261,7 +271,6 @@
         }
         canvas.remove();
         ranges.length = 0;
-        // report
 
         report(obj);
       };

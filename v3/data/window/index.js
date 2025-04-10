@@ -82,10 +82,20 @@ chrome.runtime.sendMessage({
       const fonts = analyzed.getComputedStyle[e];
       Object.entries(fonts).sort((a, b) => () => {
         return b[1].percent - a[1].percent;
-      }).forEach(([fontname, {percent, remote, info}]) => {
+      }).forEach(([fontname, {percent, remote, pretends, info}]) => {
         const div = document.createElement('div');
         const a = document.createElement('a');
-        a.textContent = fontname;
+        if (pretends.length) {
+          a.textContent = fontname + ' (' + pretends.join(', ') + ')';
+        }
+        else {
+          a.textContent = fontname;
+        }
+        if (pretends.length) {
+          info += `
+
+Your browser may pretend to support this font by silently replacing it with local alternatives (shown in parentheses).`;
+        }
 
         if (fontname && fontname.includes('system') === false) {
           a.dataset.fontname = fontname;
@@ -95,7 +105,7 @@ chrome.runtime.sendMessage({
         const span = document.createElement('span');
         span.textContent = `${percent.toFixed(1)}% (${remote ? 'web font' : 'local'})`;
         if (info) {
-          div.title = info;
+          div.title = info.trim();
         }
         div.appendChild(a);
         div.appendChild(span);
