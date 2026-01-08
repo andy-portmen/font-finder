@@ -1,7 +1,7 @@
 'use strict';
 
 {
-  const bio = [];
+  const bio = new Map();
 
   for (const stylesheet of document.styleSheets) {
     try {
@@ -14,13 +14,21 @@
           const fontFamilyMatches = cssText.match(/font-family:\s*(.*?);/i);
 
           if (fontUrlMatches && fontUrlMatches.length > 1 && fontFamilyMatches && fontFamilyMatches.length > 1) {
-            const fontUrl = fontUrlMatches[1].replace(/['"]/g, '');
+            let fontUrl = fontUrlMatches[1].replace(/['"]/g, '');
+
             if (fontUrl) {
-              const fontFamily = fontFamilyMatches[1].replace(/['"]/g, '');
-              bio.push({
-                fontFamily,
-                fontUrl
-              });
+              // full absolute URL
+              try {
+                fontUrl = new URL(fontUrl, location.href).href;
+              }
+              catch (e) {}
+
+              if (bio.has(fontUrl) === false) {
+                const fontFamily = fontFamilyMatches[1].replace(/['"]/g, '');
+                bio.set(fontUrl, {
+                  fontFamily
+                });
+              }
             }
           }
         }
@@ -28,6 +36,15 @@
     }
     catch (e) {
       console.error(e, stylesheet, stylesheet.href);
+    }
+  }
+  for (const e of performance.getEntriesByType('resource')) {
+    if (e.initiatorType === 'font' || /\.(woff2?|eot|ttf|ttc|otf|pfb|pfm)(\?|$)/i.test(e.name)) {
+      if (bio.has(e.name) === false) {
+        bio.set(e.name, {
+          initiator: e.initiatorType
+        });
+      }
     }
   }
 
@@ -162,7 +179,10 @@
           'padding': style['padding']
         },
         complex: aElement.children.length !== 0,
-        bio
+        bio: Array.from(bio.entries()).map(([fontUrl, o]) => ({
+          fontUrl,
+          ...o
+        }))
       }, () => chrome.runtime.lastError);
 
       // detect the font-family

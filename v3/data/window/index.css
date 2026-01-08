@@ -54,24 +54,29 @@ footer span {
   text-overflow: ellipsis;
 }
 [data-obj="font-family"],
+[data-obj="remote-fonts"],
 [data-obj="similar-fonts"] {
   display: flex;
   gap: 2px 5px;
   flex-wrap: wrap;
 }
 [data-obj="font-family"] a,
+[data-obj="remote-fonts"] a,
 [data-obj="similar-fonts"] span {
   white-space: nowrap;
 }
 [data-obj="font-family"] a:not([data-cmd="open"]),
+[data-obj="remote-fonts"] a:not([data-cmd="native"]),
 [data-obj="similar-fonts"] span {
   pointer-events: none;
 }
 [data-obj="font-family"] a.na,
+[data-obj="remote-fonts"] a.na,
 [data-obj="similar-fonts"] span.na {
   text-decoration: underline dashed;
 }
 [data-obj="font-family"] a:not(:last-child)::after,
+[data-obj="remote-fonts"] a:not(:last-child)::after,
 [data-obj="similar-fonts"] span:not(:last-child)::after {
   content: ',';
   display: inline-block;
@@ -164,10 +169,15 @@ footer span {
 .center span {
   flex: 1;
 }
-.two a[href] {
+.two a[href],
+[data-obj="remote-fonts"] a {
   color: var(--link);
   text-decoration: none;
 }
 .hidden {
   display: none;
+}
+
+.fyhn {
+  white-space: nowrap;
 }

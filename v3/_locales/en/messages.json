@@ -38,6 +38,9 @@
     "window_element": {
         "message": "Element Details"
     },
+    "remote_fonts": {
+        "message": "Remote Fonts"
+    },
     "window_font": {
         "message": "Font"
     },

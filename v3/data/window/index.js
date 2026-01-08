@@ -73,6 +73,8 @@ chrome.runtime.sendMessage({
     return;
   }
 
+  console.log(analyzed);
+
   document.querySelector('[data-obj=url]').textContent =
     document.querySelector('[data-obj=url]').title = analyzed.url;
   for (const e of Object.keys(analyzed.getComputedStyle)) {
@@ -111,6 +113,17 @@ Your browser may pretend to support this font by silently replacing it with loca
         div.appendChild(span);
         element.appendChild(div);
       });
+      // remote fonts
+      {
+        const parent = document.querySelector('[data-obj=remote-fonts]');
+        for (const o of analyzed.bio) {
+          const a = document.createElement('a');
+          a.href = o.fontUrl;
+          a.dataset.cmd = 'native';
+          a.title = a.textContent = o.fontFamily || a.href.split('/').unshift();
+          parent.appendChild(a);
+        }
+      }
       // similar fonts
       fetch('fuzzysort/families.json').then(r => r.json()).then(({families}) => {
         const parent = document.querySelector('[data-obj=similar-fonts]');
@@ -329,3 +342,5 @@ document.addEventListener('click', async e => {
     }
   }
 });
+
+// remote fonts
