@@ -66,7 +66,7 @@
         "message": "value is copied to the clipboard"
     },
     "window_footer": {
-        "message": "Click values to copy"
+        "message": "Click on values to copy them. Press Esc to close."
     },
     "options_copy": {
         "message": "Show 'Copy Font Details' context-menu item"

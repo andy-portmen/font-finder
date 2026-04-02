@@ -9,6 +9,20 @@ const toast = msg => {
   toast.id = setTimeout(() => document.title = chrome.i18n.getMessage('window_title'), 750);
 };
 
+window.close = new Proxy(window.close, {
+  apply(target, self, args) {
+    if (location.search.includes('mode=window')) {
+      return Reflect.apply(target, self, args);
+    }
+    else {
+      chrome.runtime.sendMessage({
+        cmd: 'close-me'
+      });
+      return true;
+    }
+  }
+});
+
 function rgb2hex(rgb) {
   rgb = rgb.match(/^rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?/i);
   return (rgb && rgb.length === 4) ? '#' +
@@ -73,7 +87,7 @@ chrome.runtime.sendMessage({
     return;
   }
 
-  console.log(analyzed);
+  console.info(analyzed);
 
   document.querySelector('[data-obj=url]').textContent =
     document.querySelector('[data-obj=url]').title = analyzed.url;
@@ -120,7 +134,7 @@ Your browser may pretend to support this font by silently replacing it with loca
           const a = document.createElement('a');
           a.href = o.fontUrl;
           a.dataset.cmd = 'native';
-          a.title = a.textContent = o.fontFamily || a.href.split('/').unshift();
+          a.title = a.textContent = o.fontFamily || a.href.split('/').at(-1) || 'Unknown Name';
           parent.appendChild(a);
         }
       }
@@ -286,9 +300,7 @@ if (location.search.includes('mode=window')) {
 window.focus();
 document.addEventListener('keydown', ({key}) => {
   if (key === 'Escape' || key === 'Esc') {
-    chrome.runtime.sendMessage({
-      cmd: 'release'
-    });
+    window.close();
   }
 });
 
@@ -299,7 +311,7 @@ document.addEventListener('keydown', ({key}) => {
 
 // Use System Fonts
 document.getElementById('userFonts').onclick = () => self.queryLocalFonts().then(fonts => {
-  chrome.storage.local.get({
+  return chrome.storage.local.get({
     userFonts: []
   }, prefs => {
     chrome.storage.local.set({
@@ -317,7 +329,7 @@ document.getElementById('userFonts').onclick = () => self.queryLocalFonts().then
       document.getElementById('userFonts').classList.add('hidden');
     }
   });
-}).finally(() => chrome.storage.local.set({
+}).then(() => chrome.storage.local.set({
   userFontsAccess: false
 }));
 chrome.storage.local.get({
@@ -343,4 +355,10 @@ document.addEventListener('click', async e => {
   }
 });
 
-// remote fonts
+// Pick
+document.getElementById('pick').addEventListener('click', () => {
+  chrome.runtime.sendMessage({
+    cmd: 'pick',
+    opener: Number(args.get('opener'))
+  }, () => window.close());
+});

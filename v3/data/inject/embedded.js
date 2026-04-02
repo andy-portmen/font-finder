@@ -18,7 +18,7 @@
   `;
 
   const iframe = document.createElement('iframe');
-  iframe.src = chrome.runtime.getURL('data/window/index.html?mode=embed&id=' + self.id);
+  iframe.src = chrome.runtime.getURL('data/window/index.html?mode=embed&id=' + self.id + '&opener=' + self.opener);
   iframe.style = `
     width: min(600px, calc(100vw - 50px));
     height: min(700px, calc(100vh - 50px));
@@ -27,7 +27,9 @@
   `;
   div.appendChild(iframe);
 
-  div.addEventListener('click', () => div.remove());
+  div.addEventListener('click', () => {
+    div.remove();
+  });
 
-  document.documentElement.appendChild(div);
+  (document.documentElement || document.body).appendChild(div);
 }

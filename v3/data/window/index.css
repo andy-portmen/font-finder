@@ -22,6 +22,7 @@ body {
   margin: 0;
   border: solid 1px var(--bg-sec);
 }
+button,
 input[type="button"] {
   height: 28px;
   color: #444;

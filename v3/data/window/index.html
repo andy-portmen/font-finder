@@ -124,8 +124,11 @@
   </div>
   <footer>
     <span data-i18n="window_footer"></span>
-    <input type="button" id="rate" value="Rate this Extension" class="hidden">
-    <input type="button" id="userFonts" value="Update Font List" class="hidden">
+    <button id="rate" class="hidden" title="Alt + R or Ctrl + Option + R" accesskey="r"><u>R</u>ate this Extension</button>
+    <button accesskey="u" id="userFonts" class="hidden" title="Alt + U or Ctrl + Option + U"><u>U</u>pdate Font List</button>
+    <button id="pick" title="Close this window and return to Inspect mode to select another element.
+
+Alt + P or Ctrl + Option + P" accesskey="p"><u>P</u>ick</button>
   </footer>
   <script src="dist/pickr.min.js"></script>
   <script src="fuzzysort/fuzzysort.js"></script>

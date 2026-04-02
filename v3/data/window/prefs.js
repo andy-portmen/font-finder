@@ -1,8 +1,6 @@
 document.addEventListener('change', e => {
   const id = e.target.id;
 
-  console.log(id);
-
   if (id.endsWith('-check')) {
     chrome.storage.local.set({
       [id]: e.target.checked

@@ -7,6 +7,7 @@ if (typeof importScripts !== 'undefined') {
 const analyzed = {};
 
 const notify = async e => {
+  console.info(e);
   try {
     const id = await chrome.notifications.create({
       type: 'basic',
@@ -121,9 +122,21 @@ const actions = {
   }
 };
 
-chrome.action.onClicked.addListener(tab => actions.page(tab, {
-  frameId: 0
-}));
+chrome.action.onClicked.addListener(tab => {
+  // on Firefox, using hotkey on the inspect interface itself!
+  if (tab.url && tab.url.startsWith(chrome.runtime.getURL('/data/window/index.html'))) {
+    const args = new URLSearchParams(tab.url);
+
+    chrome.tabs.remove(tab.id, () => actions.page({
+      id: Number(args.get('opener'))
+    }, {frameId: 0}));
+  }
+  else {
+    actions.page(tab, {
+      frameId: 0
+    });
+  }
+});
 
 chrome.runtime.onMessage.addListener((request, sender, respond) => {
   if (request.cmd === 'release') {
@@ -170,7 +183,7 @@ chrome.runtime.onMessage.addListener((request, sender, respond) => {
         const left = prefs.left || (win.left + Math.round((win.width - 500) / 2));
         const top = prefs.top || (win.top + Math.round((win.height - 700) / 2));
         chrome.windows.create({
-          url: '/data/window/index.html?mode=window&id=' + id,
+          url: '/data/window/index.html?mode=window&id=' + id + '&opener=' + sender.tab.id,
           type: 'popup',
           left: Math.max(win.left, left),
           top: Math.max(win.top, top),
@@ -183,8 +196,11 @@ chrome.runtime.onMessage.addListener((request, sender, respond) => {
           target: {
             tabId: sender.tab.id
           },
-          func: id => self.id = id,
-          args: [id]
+          func: (id, opener) => {
+            self.id = id;
+            self.opener = opener;
+          },
+          args: [id, sender.tab.id]
         }).then(() => chrome.scripting.executeScript({
           target: {
             tabId: sender.tab.id
@@ -196,6 +212,19 @@ chrome.runtime.onMessage.addListener((request, sender, respond) => {
   }
   else if (request.cmd === 'persist') {
     chrome.storage.local.set(request.object);
+  }
+  else if (request.cmd === 'pick') {
+    setTimeout(() => {
+      actions.page({id: request.opener}, {frameId: 0});
+    }, 100);
+  }
+  else if (request.cmd === 'close-me') {
+    chrome.scripting.executeScript({
+      target: {
+        tabId: sender.tab.id
+      },
+      func: () => [...document.querySelectorAll('#font-finder-embedded-div')].forEach(d => d.remove())
+    });
   }
 
   return false;
