@@ -279,8 +279,47 @@
       'WenQuanYi Micro Hei Mono'
     ]
   }, prefs => {
-    // split the original string into Unicode segments then evaluate the font-family for each segment
-    const ranges = [['0020', '007F'], ['2580', '259F'], ['00A0', '00FF'], ['25A0', '25FF'], ['0100', '017F'], ['2600', '26FF'], ['0180', '024F'], ['2700', '27BF'], ['0250', '02AF'], ['27C0', '27EF'], ['02B0', '02FF'], ['27F0', '27FF'], ['0300', '036F'], ['2800', '28FF'], ['0370', '03FF'], ['2900', '297F'], ['0400', '04FF'], ['2980', '29FF'], ['0500', '052F'], ['2A00', '2AFF'], ['0530', '058F'], ['2B00', '2BFF'], ['0590', '05FF'], ['2E80', '2EFF'], ['0600', '06FF'], ['2F00', '2FDF'], ['0700', '074F'], ['2FF0', '2FFF'], ['0780', '07BF'], ['3000', '303F'], ['0900', '097F'], ['3040', '309F'], ['0980', '09FF'], ['30A0', '30FF'], ['0A00', '0A7F'], ['3100', '312F'], ['0A80', '0AFF'], ['3130', '318F'], ['0B00', '0B7F'], ['3190', '319F'], ['0B80', '0BFF'], ['31A0', '31BF'], ['0C00', '0C7F'], ['31F0', '31FF'], ['0C80', '0CFF'], ['3200', '32FF'], ['0D00', '0D7F'], ['3300', '33FF'], ['0D80', '0DFF'], ['3400', '4DBF'], ['0E00', '0E7F'], ['4DC0', '4DFF'], ['0E80', '0EFF'], ['4E00', '9FFF'], ['0F00', '0FFF'], ['A000', 'A48F'], ['1000', '109F'], ['A490', 'A4CF'], ['10A0', '10FF'], ['AC00', 'D7AF'], ['1100', '11FF'], ['D800', 'DB7F'], ['1200', '137F'], ['DB80', 'DBFF'], ['13A0', '13FF'], ['DC00', 'DFFF'], ['1400', '167F'], ['E000', 'F8FF'], ['1680', '169F'], ['F900', 'FAFF'], ['16A0', '16FF'], ['FB00', 'FB4F'], ['1700', '171F'], ['FB50', 'FDFF'], ['1720', '173F'], ['FE00', 'FE0F'], ['1740', '175F'], ['FE20', 'FE2F'], ['1760', '177F'], ['FE30', 'FE4F'], ['1780', '17FF'], ['FE50', 'FE6F'], ['1800', '18AF'], ['FE70', 'FEFF'], ['1900', '194F'], ['FF00', 'FFEF'], ['1950', '197F'], ['FFF0', 'FFFF'], ['19E0', '19FF'], ['10000', '1007F'], ['1D00', '1D7F'], ['10080', '100FF'], ['1E00', '1EFF'], ['10100', '1013F'], ['1F00', '1FFF'], ['10300', '1032F'], ['2000', '206F'], ['10330', '1034F'], ['2070', '209F'], ['10380', '1039F'], ['20A0', '20CF'], ['10400', '1044F'], ['20D0', '20FF'], ['10450', '1047F'], ['2100', '214F'], ['10480', '104AF'], ['2150', '218F'], ['10800', '1083F'], ['2190', '21FF'], ['1D000', '1D0FF'], ['2200', '22FF'], ['1D100', '1D1FF'], ['2300', '23FF'], ['1D300', '1D35F'], ['2400', '243F'], ['1D400', '1D7FF'], ['2440', '245F'], ['20000', '2A6DF'], ['2460', '24FF'], ['2F800', '2FA1F'], ['2500', '257F'], ['E0000', 'E007F']];
+    // split the text into Unicode block segments then evaluate the font-family for each
+    // Unicode block coverage the text is bucketed into by split(); sorted by
+    // start so lookup can binary-search. Code points outside the table (and
+    // surrogate code units, which are kept whole by the code-point iteration)
+    // go into the remainder bucket added at the end of the segments.
+    const ranges = [
+      [0x0020, 0x007F], [0x00A0, 0x00FF], [0x0100, 0x017F], [0x0180, 0x024F],
+      [0x0250, 0x02AF], [0x02B0, 0x02FF], [0x0300, 0x036F], [0x0370, 0x03FF],
+      [0x0400, 0x04FF], [0x0500, 0x052F], [0x0530, 0x058F], [0x0590, 0x05FF],
+      [0x0600, 0x06FF], [0x0700, 0x074F], [0x0780, 0x07BF], [0x0900, 0x097F],
+      [0x0980, 0x09FF], [0x0A00, 0x0A7F], [0x0A80, 0x0AFF], [0x0B00, 0x0B7F],
+      [0x0B80, 0x0BFF], [0x0C00, 0x0C7F], [0x0C80, 0x0CFF], [0x0D00, 0x0D7F],
+      [0x0D80, 0x0DFF], [0x0E00, 0x0E7F], [0x0E80, 0x0EFF], [0x0F00, 0x0FFF],
+      [0x1000, 0x109F], [0x10A0, 0x10FF], [0x1100, 0x11FF], [0x1200, 0x137F],
+      [0x13A0, 0x13FF], [0x1400, 0x167F], [0x1680, 0x169F], [0x16A0, 0x16FF],
+      [0x1700, 0x171F], [0x1720, 0x173F], [0x1740, 0x175F], [0x1760, 0x177F],
+      [0x1780, 0x17FF], [0x1800, 0x18AF], [0x1900, 0x194F], [0x1950, 0x197F],
+      [0x19E0, 0x19FF], [0x1D00, 0x1D7F], [0x1E00, 0x1EFF], [0x1F00, 0x1FFF],
+      [0x2000, 0x206F], [0x2070, 0x209F], [0x20A0, 0x20CF], [0x20D0, 0x20FF],
+      [0x2100, 0x214F], [0x2150, 0x218F], [0x2190, 0x21FF], [0x2200, 0x22FF],
+      [0x2300, 0x23FF], [0x2400, 0x243F], [0x2440, 0x245F], [0x2460, 0x24FF],
+      [0x2500, 0x257F], [0x2580, 0x259F], [0x25A0, 0x25FF], [0x2600, 0x26FF],
+      [0x2700, 0x27BF], [0x27C0, 0x27EF], [0x27F0, 0x27FF], [0x2800, 0x28FF],
+      [0x2900, 0x297F], [0x2980, 0x29FF], [0x2A00, 0x2AFF], [0x2B00, 0x2BFF],
+      [0x2E80, 0x2EFF], [0x2F00, 0x2FDF], [0x2FF0, 0x2FFF], [0x3000, 0x303F],
+      [0x3040, 0x309F], [0x30A0, 0x30FF], [0x3100, 0x312F], [0x3130, 0x318F],
+      [0x3190, 0x319F], [0x31A0, 0x31BF], [0x31F0, 0x31FF], [0x3200, 0x32FF],
+      [0x3300, 0x33FF], [0x3400, 0x4DBF], [0x4DC0, 0x4DFF], [0x4E00, 0x9FFF],
+      [0xA000, 0xA48F], [0xA490, 0xA4CF], [0xAC00, 0xD7AF], [0xE000, 0xF8FF],
+      [0xF900, 0xFAFF], [0xFB00, 0xFB4F], [0xFB50, 0xFDFF], [0xFE00, 0xFE0F],
+      [0xFE20, 0xFE2F], [0xFE30, 0xFE4F], [0xFE50, 0xFE6F], [0xFE70, 0xFEFF],
+      [0xFF00, 0xFFEF], [0xFFF0, 0xFFFF], [0x10000, 0x1007F], [0x10080, 0x100FF],
+      [0x10100, 0x1013F], [0x10300, 0x1032F], [0x10330, 0x1034F], [0x10380, 0x1039F],
+      [0x10400, 0x1044F], [0x10450, 0x1047F], [0x10480, 0x104AF], [0x10800, 0x1083F],
+      [0x1D000, 0x1D0FF], [0x1D100, 0x1D1FF], [0x1D300, 0x1D35F], [0x1D400, 0x1D7FF],
+      // symbol and emoji plane: previously missing, e.g. U+1F300+
+      [0x1F000, 0x1F0FF], [0x1F100, 0x1F1FF], [0x1F200, 0x1F2FF], [0x1F300, 0x1F5FF],
+      [0x1F600, 0x1F64F], [0x1F650, 0x1F67F], [0x1F680, 0x1F6FF], [0x1F700, 0x1F77F],
+      [0x1F780, 0x1F7FF], [0x1F800, 0x1F8FF], [0x1F900, 0x1F9FF], [0x1FA00, 0x1FA6F],
+      [0x1FA70, 0x1FAFF], [0x20000, 0x2A6DF], [0x2F800, 0x2FA1F], [0xE0000, 0xE007F]
+    ];
     // a font that supports all ranges
     let notdef;
     // to get no effect from other styles and to generate a unique key
@@ -480,22 +519,52 @@
           window.getSelection().toString() || textContent(aElement) || aElement.value || 'q!@#$%^&*()/;'
         ).replace(/[\s\t\n\r]/g, '');
 
-        // split text into segments
+        // split text into code-point segments by Unicode block; the table is
+        // sorted so lookups can binary-search, and code points outside the
+        // table land in a trailing remainder segment, keeping every character
+        // (astral emoji included) analyzed and the percents summing to 100
         const segments = [];
-        for (const [begin, end] of ranges) {
-          const s = new RegExp(`[^\\u${begin}-\\u${end}]`, 'g');
-          const val = text.replace(s, '');
-          if (val) {
-            segments.push(val);
-            text = text.replace(new RegExp(`[\\u${begin}-\\u${end}]`, 'g'), '');
-            if (text === '') {
-              break;
+        const parts = new Array(ranges.length).fill('');
+        let other = '';
+        const block = cp => {
+          let lo = 0, hi = ranges.length - 1;
+          while (lo <= hi) {
+            const mid = (lo + hi) >> 1;
+            if (cp < ranges[mid][0]) {
+              hi = mid - 1;
+            }
+            else if (cp > ranges[mid][1]) {
+              lo = mid + 1;
+            }
+            else {
+              return mid;
             }
           }
+          return -1;
+        };
+        // iterating the string yields code points, so surrogate pairs (emoji
+        // and friends) survive as whole characters, not junk halves
+        for (const c of text) {
+          const i = block(c.codePointAt(0));
+          if (i === -1) {
+            other += c;
+          }
+          else {
+            parts[i] += c;
+          }
+        }
+        for (const str of parts) {
+          if (str) {
+            segments.push(str);
+          }
+        }
+        if (other) {
+          segments.push(other);
         }
         // detect
         const obj = {};
-        const tot = segments.reduce((p, c) => p + c.length, 0);
+        // code-point counts; surrogate pairs must not be double-counted
+        const tot = segments.reduce((p, c) => p + [...c].length, 0);
         for (const str of segments) {
           const e = aElement.closest('[lang]'); // do we have a lang attribute
           const [font, ...pretends] = detect(str, style['font-size'], e ? e.lang : '');
@@ -504,7 +573,7 @@
             remote: false,
             info: ''
           };
-          obj[font].percent += str.length / tot * 100;
+          obj[font].percent += [...str].length / tot * 100;
           obj[font].pretends = pretends;
         }
         // clean up
@@ -537,7 +606,6 @@
           }
         }
         canvas.remove();
-        ranges.length = 0;
 
         report(obj);
         // the slow phases run in the background and push their gains
