@@ -1,35 +1,45 @@
+// kill any open old panel first
 [...document.querySelectorAll('#font-finder-embedded-div')].forEach(d => d.remove());
 
 {
-  const div = document.createElement('div');
-  div.id = 'font-finder-embedded-div';
-  div.style = `
-    all: initial;
+  const dialog = document.createElement('dialog');
+  dialog.id = 'font-finder-embedded-div';
+  // anchored to the bottom-right corner like the old overlay; the top layer
+  // keeps the panel above the page, the ::backdrop is transparent by default
+  // and the modal state keeps the page underneath inert
+  dialog.style = `
     position: fixed;
-    left: 0;
-    top: 0;
-    width: calc(100vw - 22px);
-    height: 100vh;
+    inset: auto 15px 15px auto;
+    width: min(600px, calc(100vw - 50px));
+    height: min(700px, calc(100vh - 50px));
+    margin: 0;
+    border: none;
+    padding: 0;
     background-color: transparent;
-    z-index: 2147483647;
-    display: flex;
-    align-items: end;
-    justify-content: end;
+    color: initial;
   `;
 
   const iframe = document.createElement('iframe');
   iframe.src = chrome.runtime.getURL('data/window/index.html?mode=embed&id=' + self.id + '&opener=' + self.opener);
   iframe.style = `
-    width: min(600px, calc(100vw - 50px));
-    height: min(700px, calc(100vh - 50px));
+    width: 100%;
+    height: 100%;
     border: none;
     background-color: #fff;
+    display: block;
   `;
-  div.appendChild(iframe);
+  dialog.appendChild(iframe);
 
-  div.addEventListener('click', () => {
-    div.remove();
+  // a click on the transparent backdrop (modal) lands on the dialog itself;
+  // clicks inside the iframe never bubble this far
+  dialog.addEventListener('click', e => {
+    if (e.target === dialog) {
+      dialog.close();
+    }
   });
+  // released on Esc (cancel + close) or close-me; keep the tree clean
+  dialog.addEventListener('close', () => dialog.remove());
 
-  (document.documentElement || document.body).appendChild(div);
+  (document.body || document.documentElement).appendChild(dialog);
+  dialog.showModal();
 }

@@ -103,7 +103,7 @@ const actions = {
       files: ['/data/inject/analyze.js']
     }).catch(notify);
   },
-  release(tab) {
+  async release(tab) {
     chrome.action.setIcon({
       tabId: tab.id,
       path: {
@@ -113,7 +113,7 @@ const actions = {
       }
     });
     chrome.tabs.sendMessage(tab.id, 'release', () => chrome.runtime.lastError);
-    chrome.scripting.executeScript({
+    await chrome.scripting.executeScript({
       target: {
         tabId: tab.id,
         allFrames: true
@@ -226,7 +226,7 @@ chrome.runtime.onMessage.addListener((request, sender, respond) => {
     chrome.runtime.sendMessage('close-inspector', () => chrome.runtime.lastError);
     //
     chrome.storage.local.get({
-      width: 600,
+      width: 800,
       height: 750,
       mode: 'window'
     }, async prefs => {
@@ -253,21 +253,31 @@ chrome.runtime.onMessage.addListener((request, sender, respond) => {
         actions.release(sender.tab);
       }
       else {
-        chrome.scripting.executeScript({
-          target: {
-            tabId: sender.tab.id
-          },
-          func: (id, opener) => {
-            self.id = id;
-            self.opener = opener;
-          },
-          args: [id, sender.tab.id]
-        }).then(() => chrome.scripting.executeScript({
-          target: {
-            tabId: sender.tab.id
-          },
-          files: ['/data/inject/embedded.js']
-        })).catch(notify).then(() => actions.release(sender.tab));
+        // release the picker UI first; release.js removes
+        // #font-finder-embedded-div, so running it after the
+        // injection would tear the fresh panel down
+        await actions.release(sender.tab);
+        try {
+          await chrome.scripting.executeScript({
+            target: {
+              tabId: sender.tab.id
+            },
+            func: (id, opener) => {
+              self.id = id;
+              self.opener = opener;
+            },
+            args: [id, sender.tab.id]
+          });
+          await chrome.scripting.executeScript({
+            target: {
+              tabId: sender.tab.id
+            },
+            files: ['/data/inject/embedded.js']
+          });
+        }
+        catch (e) {
+          notify(e);
+        }
       }
     });
   }
