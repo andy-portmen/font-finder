@@ -57,6 +57,23 @@ chrome.runtime.onMessage.addListener(request => {
   }
 });
 
+// per-text-node breakdown of a complex selection (data/inject/analyze.js);
+// early messages are queued like the detected ones above; the whole list
+// renders as one nested sub-section whose cells are rebuilt per update
+const pendingSegments = [];
+const segmentCells = [];
+let mergeSegments = null;
+chrome.runtime.onMessage.addListener(request => {
+  if (request && request.cmd === 'segments' && request.id === Number(args.get('id'))) {
+    if (mergeSegments) {
+      mergeSegments(request);
+    }
+    else {
+      pendingSegments.push(request);
+    }
+  }
+});
+
 function rgb2hex(rgb) {
   rgb = rgb.match(/^rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?/i);
   return (rgb && rgb.length === 4) ? '#' +
@@ -157,10 +174,15 @@ chrome.runtime.sendMessage({
 
   console.info(analyzed);
 
+  // per-text-node breakdown of a complex selection; populated by the
+  // streamed 'segments' messages (or restored by the worker on a reload)
+  analyzed.segments = analyzed.segments || [];
+
   // rebuilt when the background phases of the analysis push bio updates or
   // when the streamed detection reports the rendered fonts
   let buildRemoteFonts = () => {};
   let buildRenderedFonts = () => {};
+  let buildSegments = () => {};
   let runSimilar = () => {};
   let detectedDone = false;
 
@@ -343,6 +365,8 @@ ${pretends.join(', ')}`;
             unknownDivider.title = chrome.i18n.getMessage('window_remote_from_script');
             unknownDivider.textContent = chrome.i18n.getMessage('window_extra_web_fonts');
             unknownLine = document.createElement('div');
+            // families may be numerous; the CSS lets this line wrap
+            unknownLine.classList.add('wrap');
             const families = [...unknownFamilies.entries()].sort((a, b) => {
               const pa = a[1].pos;
               const pb = b[1].pos;
@@ -644,13 +668,9 @@ ${pretends.join(', ')}`;
     }
   }
 
-  if (analyzed.complex) {
-    document.getElementById('msg').textContent =
-      'A complex element is selected. To view font details of child nodes, select the node directly.';
-  }
-  else {
-    document.getElementById('msg').remove();
-  }
+  // the per-segment breakdown replaces the former complex-element notice;
+  // rows stream in once the detection phases report
+  document.getElementById('msg').remove();
 
   document.addEventListener('click', ({target}) => {
     const cmd = target.dataset.cmd;
@@ -693,6 +713,71 @@ ${pretends.join(', ')}`;
     buildRenderedFonts();
     runSimilar();
   };
+  // streamed per-segment breakdown of a complex selection; every entry is
+  // one descendant text node rendered as the font-family / Font being
+  // Rendered pair format of the other rows
+  mergeSegments = request => {
+    analyzed.segments.push(...request.entries);
+    buildSegments();
+  };
+  buildSegments = () => {
+    const grid = document.getElementById('font-two');
+    if (analyzed.segments.length === 0) {
+      // the outer pair is removed entirely while the section is empty
+      for (const cell of segmentCells) {
+        cell.remove();
+      }
+      segmentCells.length = 0;
+      return;
+    }
+    if (segmentCells.length === 0) {
+      // the outer pair: a 'Segments' label, then the nested list in the
+      // value cell; inserted between the rendered fonts and font-size rows
+      const label = document.createElement('span');
+      label.classList.add('prop');
+      label.id = 'seg-label';
+      label.textContent = 'Segments';
+      const container = document.createElement('div');
+      container.classList.add('two');
+      container.id = 'segments';
+      segmentCells.push(label, container);
+      const anchor = grid.querySelector('[data-obj="font-size"]').previousElementSibling;
+      grid.insertBefore(label, anchor);
+      grid.insertBefore(container, anchor);
+    }
+    // only the nested content is rebuilt on each streamed update
+    const container = segmentCells[1];
+    container.replaceChildren();
+    for (const {fontname, sample, collapsed, more, percent, stack} of analyzed.segments) {
+      // the stack line; the labels reuse the exact parent-row strings
+      const p1 = document.createElement('span');
+      p1.classList.add('prop');
+      p1.textContent = 'font-family (stack)';
+      const v1 = document.createElement('span');
+      v1.classList.add('seg-stack');
+      v1.textContent = stack || '';
+      // the rendered line, rendered like the Font being Rendered row
+      const p2 = document.createElement('span');
+      p2.classList.add('prop');
+      p2.textContent = 'Font being Rendered';
+      const v2 = document.createElement('div');
+      v2.classList.add('seg-rendered');
+      const a = document.createElement('a');
+      a.textContent = collapsed ? `… ${more} more text nodes` : fontname;
+      if (fontname && fontname.includes('system') === false) {
+        a.dataset.fontname = fontname;
+        a.dataset.cmd = 'open';
+        a.href = '#';
+      }
+      const span = document.createElement('span');
+      span.textContent = `${percent.toFixed(1)}%`;
+      // the tooltip carries the characters the font resolved for; the
+      // collapsed segment carries the merged overflow count
+      v2.title = collapsed ? `… ${more} more text nodes` : sample;
+      v2.append(a, span);
+      container.append(p1, v1, p2, v2);
+    }
+  };
   // flush updates that arrived while the inspector was starting
   if (pendingBio.length) {
     mergeBio(pendingBio);
@@ -701,6 +786,10 @@ ${pretends.join(', ')}`;
   for (const request of pendingDetected.splice(0)) {
     mergeDetected(request);
   }
+  for (const request of pendingSegments.splice(0)) {
+    mergeSegments(request);
+  }
+  buildSegments();
   chrome.runtime.onMessage.addListener(request => {
     if (request === 'close-inspector') {
       window.close();

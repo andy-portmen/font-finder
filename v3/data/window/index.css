@@ -112,6 +112,30 @@ footer span {
 #msg {
   color: var(--fg-msg);
 }
+/* the nested per-segment list inside the Segments pair; the cells live in
+   the #font-two grid between the rendered fonts and the font-size rows,
+   keeping the pair striping/hover parity of the other rows */
+#segments {
+  min-width: 0;
+}
+/* the Segments pair opts out of the block hover highlight, like the
+   resolved-names triplets do; the nested pairs keep their per-row hover */
+#seg-label:hover + #segments,
+#segments:hover {
+  background-color: transparent;
+  box-shadow: none;
+}
+.seg-stack {
+  color: var(--fg-msg);
+  overflow-wrap: anywhere;
+}
+.seg-rendered {
+  display: flex;
+  gap: 5px;
+}
+.seg-rendered a {
+  flex: 1;
+}
 #msg:not(:empty) {
   padding-top: 10px;
 }
@@ -162,6 +186,22 @@ footer span {
 .two > :nth-child(2n):hover {
   background-color: rgba(0, 105, 255, 0.2);
   box-shadow: 0 0 0 2px rgba(0, 105, 255, 0.2);
+}
+/* the remote fonts list is [header, url, name] triplets, so the label/value
+   parity tricks above misfire here; opt it out of both the striping and the
+   hover highlight */
+[data-obj="resolved-names"] > :nth-child(4n) {
+  background-color: transparent;
+}
+[data-obj="resolved-names"] > :nth-child(2n - 1):hover + *,
+[data-obj="resolved-names"] > :nth-child(2n):hover {
+  background-color: transparent;
+  box-shadow: none;
+}
+/* the Extra Web Fonts list wraps to several lines when it is long */
+[data-obj="resolved-names"] .wrap {
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 .prop {
   color: var(--fg-li);

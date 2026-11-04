@@ -140,6 +140,7 @@ chrome.action.onClicked.addListener(tab => {
 });
 
 chrome.runtime.onMessage.addListener((request, sender, respond) => {
+  console.log(request);
   if (request.cmd === 'release') {
     actions.release(sender.tab);
   }
@@ -199,6 +200,21 @@ chrome.runtime.onMessage.addListener((request, sender, respond) => {
           done: request.done === true
         }, () => chrome.runtime.lastError);
       }
+    }
+  }
+  else if (request.cmd === 'segments') {
+    // streamed per-text-node breakdown of a complex selection; store and
+    // forward to the inspector like 'detected' does
+    const id = sender.tab && tabToId.get(sender.tab.id);
+    const data = analyzed[id];
+    if (data) {
+      data.segments = (data.segments || []).concat(request.entries);
+      chrome.runtime.sendMessage({
+        cmd: 'segments',
+        id,
+        entries: request.entries,
+        done: request.done === true
+      }, () => chrome.runtime.lastError);
     }
   }
   else if (request.cmd === 'analyzed') {

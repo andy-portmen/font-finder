@@ -429,6 +429,9 @@
 
     // get the active element
     let aElement = window.aElement;
+    // the picker flow expresses the intent in window.aElement; a leftover
+    // text selection is incidental there and must not override the structure
+    let picked = false;
     if (!aElement || aElement === document.body) {
       const s = window.getSelection();
       const r = s.getRangeAt(0);
@@ -438,6 +441,7 @@
       }
     }
     else {
+      picked = true;
       // remove old inspect
       delete window.aElement;
     }
@@ -446,10 +450,10 @@
     // canvas font shorthand prefix; honors the actual font-style, font-weight and font-stretch of the element
     let fontPrefix = '';
 
-    // set ctx.font out of the font-family; honors the element's fontPrefix and
+    // set ctx.font out of the font-family; honors the font shorthand prefix and
     // retries without it when the shorthand gets rejected
-    const applyFont = (fonts, size) => {
-      const font = (fontPrefix ? fontPrefix + ' ' : '') + size + ' ' + fonts;
+    const applyFont = (fonts, size, prefix = fontPrefix) => {
+      const font = (prefix ? prefix + ' ' : '') + size + ' ' + fonts;
       ctx.font = '10px sans-serif';
       ctx.font = font;
 
@@ -460,10 +464,10 @@
 
     // generate a unique key for each font-family; the framebuffer itself (not a
     // toDataURL PNG encode, which dominated the analysis time) is the identity
-    const key = (str, size, fonts, lang) => {
+    const key = (str, size, fonts, lang, prefix = fontPrefix) => {
       canvas.lang = lang;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      applyFont(fonts, size);
+      applyFont(fonts, size, prefix);
       ctx.fillText(str, 0, 128);
       return ctx.getImageData(0, 0, canvas.width, canvas.height);
     };
@@ -483,21 +487,23 @@
     if (aElement) {
       const style = window.getComputedStyle(aElement);
 
-      // build the canvas font shorthand prefix out of the element's computed font-style, font-weight and font-stretch
-      fontPrefix = (() => {
+      // the canvas font shorthand prefix out of the computed font-style,
+      // font-weight and font-stretch; a per-element builder so the per-segment
+      // detection of a complex selection honors the child's own styling
+      const fontPrefixOf = s => {
         const parts = [];
         // font-style; drop the angle from 'oblique 10deg' to keep the shorthand parseable
-        const fontStyle = style['font-style'].replace(/\s+-?[\d.]+deg$/, '');
+        const fontStyle = s['font-style'].replace(/\s+-?[\d.]+deg$/, '');
         if (fontStyle !== 'normal') {
           parts.push(fontStyle);
         }
         // font-weight; the computed value is numeric (possibly fractional for variable fonts)
-        const fontWeight = style['font-weight'];
+        const fontWeight = s['font-weight'];
         if (fontWeight !== 'normal' && fontWeight !== '400') {
           parts.push(fontWeight);
         }
         // font-stretch; snap a computed percentage to the closest CSS keyword
-        let stretch = style['font-stretch'];
+        let stretch = s['font-stretch'];
         if (stretch.endsWith('%')) {
           const value = parseFloat(stretch);
           const keywords = [
@@ -512,7 +518,10 @@
           parts.push(stretch);
         }
         return parts.join(' ');
-      })();
+      };
+
+      // build the canvas font shorthand prefix out of the element's computed font-style, font-weight and font-stretch
+      fontPrefix = fontPrefixOf(style);
 
       // get the list of all font-families (up to window object)
       const fontStack = (() => {
@@ -570,24 +579,39 @@
         done
       }, () => chrome.runtime.lastError);
 
+      // phase two extension: the per-text-node breakdown of a complex
+      // selection; each entry is one segment with its resolved font, so the
+      // inspector can list which child node uses which font
+      const streamSeg = (entries, done) => chrome.runtime.sendMessage({
+        cmd: 'segments',
+        entries,
+        done
+      }, () => chrome.runtime.lastError);
+
       // phase one: open the inspector right away with everything but the
       // rendered fonts; the slow detection and the bio phases run behind it
       report({});
       runAsync();
 
-      // the candidate families are constant; build the list once
-      const list = [...fontStack, ...prefs.userFonts, ...prefs.baseFonts]
+      // build the candidates out of a font stack; the user's and the base
+      // fonts are constant
+      const listOf = stack => [...stack, ...prefs.userFonts, ...prefs.baseFonts]
         .filter((s, i, l) => s && l.indexOf(s) === i);
+      // the inspected element's candidates are constant; build the list once
+      const list = listOf(fontStack);
 
-      // detect the font-family
-      const detect = (str, size, lang = '') => {
+      // detect the font-family; the context (sx) describes the effective style
+      // of the text being probed: its stack, size, lang, canvas font shorthand
+      // prefix and the candidates' list, all from its own element
+      const detect = (str, sx) => {
+        const {stack, size, lang, list, prefix} = sx;
         canvas.lang = lang;
-        const fallback = key(str, size, 'notdef', lang);
+        const fallback = key(str, size, 'notdef', lang, prefix);
 
-        const ref = key(str, size, style['font-family'], lang);
+        const ref = key(str, size, stack, lang, prefix);
         // what the canvas draws when no family exists; the pure system fallback
         // for this exact string, size, lang, weight and stretch
-        const pure = key(str, size, '__ff_none__', lang);
+        const pure = key(str, size, '__ff_none__', lang, prefix);
 
         // ink-extent snapshots per font-family, cached for the scan; identical
         // pixels imply identical ink, so differing metrics rule a family out
@@ -597,7 +621,7 @@
           if (snap.has(fonts) === false) {
             // lang shaping precedes the measurement whatever the call order is
             canvas.lang = lang;
-            applyFont(fonts, size);
+            applyFont(fonts, size, prefix);
             const m = ctx.measureText(str);
             snap.set(fonts, [
               m.actualBoundingBoxLeft, m.actualBoundingBoxRight,
@@ -607,12 +631,12 @@
           return snap.get(fonts);
         };
         const sameInk = (a, b) => a.every((v, i) => v === b[i]);
-        const refInk = ink(style['font-family']);
+        const refInk = ink(stack);
         // cheap prefilter: the family cannot possibly render like the reference
         const maybe = fonts => sameInk(ink(fonts), refInk);
         // is a known font: renders differently from the notdef-only fallback
         const known = fonts => sameInk(ink(`"${fonts}",notdef`), ink('notdef')) === false ||
-          same(key(str, size, `"${fonts}",notdef`, lang), fallback) === false;
+          same(key(str, size, `"${fonts}",notdef`, lang, prefix), fallback) === false;
 
         // the first matching family is the reported one; every other family that
         // renders identically is one the browser may be pretending with
@@ -623,7 +647,7 @@
           if (maybe(font) === false) {
             continue;
           }
-          const draw = key(str, size, font, lang);
+          const draw = key(str, size, font, lang, prefix);
           // own glyphs: a draw identical to the fallback-of-nothing means the
           // family rendered nothing itself; the bitmap came from the shared
           // fallback, so it is neither a match nor a pretender
@@ -635,7 +659,9 @@
         }
         return matches.length ? matches : ['System Default'];
       };
-      // split into segments
+      // split into segments; complex elements are decomposed per descendant
+      // text node so each child keeps its own font identity, while simple
+      // elements and text selections keep the single-stream path
       const split = async () => {
         const textContent = node => {
           let content = '';
@@ -654,17 +680,103 @@
           return content;
         };
 
-        let text = (
-          window.getSelection().toString() || textContent(aElement) || aElement.value || 'q!@#$%^&*()/;'
-        ).replace(/[\s\t\n\r]/g, '');
+        // the inspected element's own effective style; the context every
+        // selection and simple element is probed with
+        const baseLang = aElement.closest('[lang]');
+        const baseCtx = {
+          stack: style['font-family'],
+          list,
+          size: style['font-size'],
+          prefix: fontPrefix,
+          lang: baseLang ? baseLang.lang : ''
+        };
+        // the identity a chunk dedupe compares: everything the detection
+        // is sensitive to
+        baseCtx.tag = JSON.stringify([baseCtx.stack, baseCtx.size, baseCtx.prefix, baseCtx.lang, baseCtx.list]);
+        // per-chunk style context: the text renders under its own element's
+        // effective style, not the inspected element's; memoized per element
+        const contexts = new Map();
+        const contextOf = el => {
+          if (el === aElement) {
+            return baseCtx;
+          }
+          if (contexts.has(el) === false) {
+            const s = window.getComputedStyle(el);
+            // the list of all font-families (up to window object)
+            const stack = [];
+            for (let e = el; e && e !== document; e = e.parentNode) {
+              stack.push(...window.getComputedStyle(e)['font-family'].replace(/[;'"]/g, '').split(/\s*,\s*/));
+            }
+            const near = el.closest('[lang]');
+            const ctx = {
+              stack: s['font-family'],
+              list: listOf(stack),
+              size: s['font-size'],
+              prefix: fontPrefixOf(s),
+              lang: near ? near.lang : ''
+            };
+            // the identity a chunk dedupe compares: everything the detection
+            // is sensitive to
+            ctx.tag = JSON.stringify([ctx.stack, ctx.size, ctx.prefix, ctx.lang, ctx.list]);
+            contexts.set(el, ctx);
+          }
+          return contexts.get(el);
+        };
+
+        // the analysis units: a deliberate text selection (selection-mode, no
+        // picker) wins over the structure; the picker flow always decomposes
+        // the picked element per descendant text node, because each child may
+        // carry its own font stack, and the elements it renders under
+        let complex = false;
+        let chunks = [];
+        const selection = window.getSelection().toString();
+        if (selection && picked === false) {
+          chunks.push({str: selection.replace(/[\s\t\n\r]/g, ''), el: aElement});
+        }
+        else if (aElement.children.length !== 0) {
+          complex = true;
+          const iterator = document.createNodeIterator(aElement, NodeFilter.SHOW_TEXT);
+          let c;
+          while (c = iterator.nextNode()) {
+            const str = (c.nodeValue || '').replace(/[\s\t\n\r]/g, '');
+            if (str) {
+              chunks.push({str, el: c.parentElement || aElement});
+            }
+          }
+          // collapse runs of identical text nodes in identical style contexts,
+          // so repeated wrappers do not repeat the same breakdown row
+          chunks = chunks.filter((o, i) => i === 0 || o.str !== chunks[i - 1].str ||
+            contextOf(o.el).tag !== contextOf(chunks[i - 1].el).tag);
+          // text-less wrappers fall back to the whole subtree text, then the
+          // value, then a probe string; they report like simple elements
+          if (chunks.length === 0) {
+            complex = false;
+            chunks = [{str: (
+              textContent(aElement) || aElement.value || 'q!@#$%^&*()/;'
+            ).replace(/[\s\t\n\r]/g, ''), el: aElement}];
+          }
+        }
+        else {
+          chunks = [{str: (
+            textContent(aElement) || aElement.value || 'q!@#$%^&*()/;'
+          ).replace(/[\s\t\n\r]/g, ''), el: aElement}];
+        }
+
+        // per-text-node rows add up; beyond the cap the overflow chunks merge
+        // into one collapsed segment that still gets detected, so the
+        // percents keep summing to 100; the merged chunk renders under the
+        // first overflow chunk's context
+        const CAP = 50;
+        const more = chunks.length > CAP ? chunks.length - CAP + 1 : 0;
+        if (more) {
+          const merged = chunks.slice(CAP - 1).map(o => o.str).join('');
+          chunks = chunks.slice(0, CAP - 1).concat([{str: merged, el: chunks[CAP - 1].el}]);
+        }
 
         // split text into code-point segments by Unicode block; the table is
         // sorted so lookups can binary-search, and code points outside the
         // table land in a trailing remainder segment, keeping every character
         // (astral emoji included) analyzed and the percents summing to 100
-        const segments = [];
-        const parts = new Array(ranges.length).fill('');
-        let other = '';
         const block = cp => {
           let lo = 0, hi = ranges.length - 1;
           while (lo <= hi) {
@@ -681,29 +793,53 @@
           }
           return -1;
         };
-        // iterating the string yields code points, so surrogate pairs (emoji
-        // and friends) survive as whole characters, not junk halves
-        for (const c of text) {
-          const i = block(c.codePointAt(0));
-          if (i === -1) {
-            other += c;
+        // the bucket of one chunk: the non-empty Unicode block slices plus a
+        // trailing remainder slice, all in source order
+        const bucket = str => {
+          const parts = new Array(ranges.length).fill('');
+          let other = '';
+          // iterating the string yields code points, so surrogate pairs (emoji
+          // and friends) survive as whole characters, not junk halves
+          for (const c of str) {
+            const i = block(c.codePointAt(0));
+            if (i === -1) {
+              other += c;
+            }
+            else {
+              parts[i] += c;
+            }
+          }
+          const out = [];
+          for (const s of parts) {
+            if (s) {
+              out.push(s);
+            }
+          }
+          if (other) {
+            out.push(other);
+          }
+          return out;
+        };
+        // detect
+        // short preview of a segment for the breakdown rows
+        const preview = str => str.length > 40 ? str.slice(0, 40) + '…' : str;
+        const segments = [];
+        for (let n = 0; n < chunks.length; n += 1) {
+          const o = chunks[n];
+          if (n === chunks.length - 1 && more) {
+            // the collapsed overflow segment; the block slicing is skipped so
+            // the merged chunks stay one detection unit
+            segments.push({str: o.str, sample: '', collapsed: true, more, ctx: contextOf(o.el)});
           }
           else {
-            parts[i] += c;
+            for (const s of bucket(o.str)) {
+              segments.push({str: s, sample: preview(s), collapsed: false, more: 0, ctx: contextOf(o.el)});
+            }
           }
         }
-        for (const str of parts) {
-          if (str) {
-            segments.push(str);
-          }
-        }
-        if (other) {
-          segments.push(other);
-        }
-        // detect
         const obj = {};
         // code-point counts; surrogate pairs must not be double-counted
-        const tot = segments.reduce((p, c) => p + [...c].length, 0);
+        const tot = segments.reduce((p, c) => p + [...c.str].length, 0);
         // fonts whose state changed since the last push; entries carry the
         // font's accumulated state and the inspector merges them by fontname
         const sent = new Map();
@@ -725,18 +861,35 @@
             stream(entries, done);
           }
         };
-        const e = aElement.closest('[lang]'); // do we have a lang attribute
-        const lang = e ? e.lang : '';
-        for (const str of segments) {
-          const [font, ...pretends] = detect(str, style['font-size'], lang);
+        // per-segment breakdown entries; streamed only when the element was
+        // decomposed into per-text-node chunks and there is more than one
+        // detection unit to justify the list
+        const breakdown = complex && segments.length > 1;
+        for (const seg of segments) {
+          const [font, ...pretends] = detect(seg.str, seg.ctx);
           obj[font] = obj[font] || {
             percent: 0,
             remote: false,
             info: ''
           };
-          obj[font].percent += [...str].length / tot * 100;
+          obj[font].percent += [...seg.str].length / tot * 100;
           obj[font].pretends = pretends;
+          if (breakdown) {
+            streamSeg([{
+              fontname: font,
+              sample: seg.sample,
+              collapsed: seg.collapsed,
+              more: seg.more,
+              percent: [...seg.str].length / tot * 100,
+              // the segment renders under its own element's stack
+              stack: seg.ctx.stack,
+              size: seg.ctx.size
+            }], false);
+          }
           push();
+        }
+        if (breakdown) {
+          streamSeg([], true);
         }
         // clean up
         document.fonts.delete(notdef);
