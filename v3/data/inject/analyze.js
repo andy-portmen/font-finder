@@ -126,17 +126,58 @@
     }
     console.info('Selected Node', aElement);
 
+    // canvas font shorthand prefix; honors the actual font-style, font-weight and font-stretch of the element
+    let fontPrefix = '';
+
     // generate a unique key for each font-family
     const key = (str, size, fonts, lang) => {
       canvas.lang = lang;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.font = size + ' ' + fonts;
+      const font = (fontPrefix ? fontPrefix + ' ' : '') + size + ' ' + fonts;
+      ctx.font = '10px sans-serif';
+      ctx.font = font;
+
+      if (ctx.font === '10px sans-serif' && font !== '10px sans-serif') {
+        // the shorthand got rejected, retry without the prefix
+        ctx.font = size + ' ' + fonts;
+      }
       ctx.fillText(str, 0, 128);
       return canvas.toDataURL();
     };
 
     if (aElement) {
       const style = window.getComputedStyle(aElement);
+
+      // build the canvas font shorthand prefix out of the element's computed font-style, font-weight and font-stretch
+      fontPrefix = (() => {
+        const parts = [];
+        // font-style; drop the angle from 'oblique 10deg' to keep the shorthand parseable
+        const fontStyle = style['font-style'].replace(/\s+-?[\d.]+deg$/, '');
+        if (fontStyle !== 'normal') {
+          parts.push(fontStyle);
+        }
+        // font-weight; the computed value is numeric (possibly fractional for variable fonts)
+        const fontWeight = style['font-weight'];
+        if (fontWeight !== 'normal' && fontWeight !== '400') {
+          parts.push(fontWeight);
+        }
+        // font-stretch; snap a computed percentage to the closest CSS keyword
+        let stretch = style['font-stretch'];
+        if (stretch.endsWith('%')) {
+          const value = parseFloat(stretch);
+          const keywords = [
+            [50, 'ultra-condensed'], [62.5, 'extra-condensed'], [75, 'condensed'], [87.5, 'semi-condensed'],
+            [112.5, 'semi-expanded'], [125, 'expanded'], [150, 'extra-expanded'], [200, 'ultra-expanded']
+          ];
+          stretch = value === 100 ? 'normal' : keywords.reduce((p, c) =>
+            Math.abs(c[0] - value) < Math.abs(p[0] - value) ? c : p
+          )[1];
+        }
+        if (stretch !== 'normal' && stretch !== '100%') {
+          parts.push(stretch);
+        }
+        return parts.join(' ');
+      })();
 
       // get the list of all font-families (up to window object)
       const fontStack = (() => {
@@ -264,7 +305,7 @@
         document.fonts.delete(notdef);
         // remote fonts
         for (const name of Object.keys(obj)) {
-          const f = style['font-size'] + ' "' + name + '"';
+          const f = (fontPrefix ? fontPrefix + ' ' : '') + style['font-size'] + ' "' + name + '"';
           // possible remote font
           try {
             const fontFace = (await document.fonts.load(f))[0];
