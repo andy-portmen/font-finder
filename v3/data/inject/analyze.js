@@ -277,10 +277,6 @@
       'BlinkMacSystemFont', 'cursive', 'fantasy', 'DejaVu Serif', 'DejaVu Sans Mono', 'DejaVu Sans', 'Ubuntu Mono',
       'WenQuanYi Micro Hei', 'Gentium Book Basic', 'Gentium Basic', 'Ubuntu', 'Ubuntu Condensed', 'OpenSymbol',
       'WenQuanYi Micro Hei Mono'
-    ],
-    // Fonts commonly faked by Windows browsers (e.g. Helvetica -> Helvetica, Times -> Times New Roman)
-    pretendedFonts: [
-      'Arial', 'Times New Roman', 'Courier New', 'Tahoma', 'Lucida Sans Unicode', 'Segoe UI'
     ]
   }, prefs => {
     // split the original string into Unicode segments then evaluate the font-family for each segment
@@ -315,18 +311,23 @@
     // canvas font shorthand prefix; honors the actual font-style, font-weight and font-stretch of the element
     let fontPrefix = '';
 
-    // generate a unique key for each font-family
-    const key = (str, size, fonts, lang) => {
-      canvas.lang = lang;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // set ctx.font out of the font-family; honors the element's fontPrefix and
+    // retries without it when the shorthand gets rejected
+    const applyFont = (fonts, size) => {
       const font = (fontPrefix ? fontPrefix + ' ' : '') + size + ' ' + fonts;
       ctx.font = '10px sans-serif';
       ctx.font = font;
 
       if (ctx.font === '10px sans-serif' && font !== '10px sans-serif') {
-        // the shorthand got rejected, retry without the prefix
         ctx.font = size + ' ' + fonts;
       }
+    };
+
+    // generate a unique key for each font-family
+    const key = (str, size, fonts, lang) => {
+      canvas.lang = lang;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      applyFont(fonts, size);
       ctx.fillText(str, 0, 128);
       return canvas.toDataURL();
     };
@@ -414,28 +415,47 @@
 
       // detect the font-family
       const detect = (str, size, lang = '') => {
+        canvas.lang = lang;
         const fallback = key(str, size, 'notdef', lang);
 
         const list = [...fontStack, ...prefs.userFonts, ...prefs.baseFonts]
           .filter((s, i, l) => s && l.indexOf(s) === i);
         const ref = key(str, size, style['font-family'], lang);
 
+        // ink-extent snapshots per font-family, cached for the scan; identical
+        // pixels imply identical ink, so differing metrics rule a family out
+        // before anything gets rasterized
+        const snap = new Map();
+        const ink = fonts => {
+          if (snap.has(fonts) === false) {
+            applyFont(fonts, size);
+            const m = ctx.measureText(str);
+            snap.set(fonts, [
+              m.actualBoundingBoxLeft, m.actualBoundingBoxRight,
+              m.actualBoundingBoxAscent, m.actualBoundingBoxDescent
+            ]);
+          }
+          return snap.get(fonts);
+        };
+        const sameInk = (a, b) => a.every((v, i) => v === b[i]);
+        const refInk = ink(style['font-family']);
+        // cheap prefilter: the family cannot possibly render like the reference
+        const maybe = fonts => sameInk(ink(fonts), refInk);
+        // is a known font: renders differently from the notdef-only fallback
+        const known = fonts => sameInk(ink(`"${fonts}",notdef`), ink('notdef')) === false ||
+          key(str, size, `"${fonts}",notdef`, lang) !== fallback;
+
+        // the first matching family is the reported one; every other family that
+        // renders identically is one the browser may be pretending with
+        const matches = [];
         for (const font of list) {
-          if (key(str, size, font, lang) === ref && // font is equal to the referenced font
-            key(str, size, `"${font}",notdef`, lang) !== fallback /* is a known font */) {
-            const fonts = [font];
-
-            // What if the font is a pretended font
-            for (const p of prefs.pretendedFonts) {
-              if (p !== font && key(str, size, p, lang) === ref) {
-                fonts.push(p);
-              }
-            }
-
-            return fonts;
+          if (maybe(font) && // font is equal to the referenced font
+            key(str, size, font, lang) === ref &&
+            known(font)) {
+            matches.push(font);
           }
         }
-        return ['System Default'];
+        return matches.length ? matches : ['System Default'];
       };
       // split into segments
       const split = async () => {

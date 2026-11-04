@@ -115,7 +115,7 @@ footer span {
 #new-content {
   display: grid;
   grid-template-columns: min-content min-content 1fr;
-  align-items: center;
+  align-items: baseline;
   align-self: self-start;
   padding-inline: 1ch;
   grid-gap: 1ch;
