@@ -2,6 +2,10 @@
 
 {
   const bio = new Map();
+  // faces with no recoverable URL are stored under FACE_KEY + family KEY_SEP weight KEY_SEP style;
+  // KEY_SEP must stay in sync with data/window/index.js which parses these keys
+  const FACE_KEY = 'face:';
+  const KEY_SEP = '\u0000';
   // a src may list several sources; url() ones are downloadable, local() ones are not
   const urlPattern = /url\(\s*(['"]?)(.*?)\1\s*\)/gi;
 
@@ -164,7 +168,7 @@
       if (family === '' || family === 'notdef' || [...bio.values()].some(o => o.fontFamily === family)) {
         continue;
       }
-      bio.set('face:' + [family, face.weight, face.style].join('\u0000'), {
+      bio.set(FACE_KEY + [family, face.weight, face.style].join(KEY_SEP), {
         fontFamily: family,
         weight: face.weight,
         style: face.style,

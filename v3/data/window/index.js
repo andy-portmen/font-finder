@@ -3,6 +3,11 @@
 'use strict';
 
 const args = new URLSearchParams(location.search);
+// must stay in sync with data/inject/analyze.js: bio keeps entries of faces without
+// a URL under FACE_KEY + family KEY_SEP weight KEY_SEP style; KEY_SEP is also used
+// to join composite keys domestically
+const FACE_KEY = 'face:';
+const KEY_SEP = '\u0000';
 const toast = msg => {
   document.title = msg;
   clearTimeout(toast.id);
@@ -107,7 +112,7 @@ const composeInfo = (row, names) => {
 function fontType(href) {
   href = href.toLowerCase();
 
-  const extensions = ['woff2', 'woff', 'eot', 'ttf', 'ttf', 'otf', 'pfb', 'pfm'];
+  const extensions = ['woff2', 'woff', 'eot', 'ttf', 'otf', 'pfb', 'pfm'];
 
   // accurate
   for (const ext of extensions) {
@@ -122,30 +127,6 @@ function fontType(href) {
     }
   }
 
-  if (href.includes('woff2')) {
-    return 'woff2';
-  }
-  if (href.includes('woff')) {
-    return 'woff'; // Web Open Font Format
-  }
-  if (href.includes('eot')) {
-    return 'eot';
-  }
-  if (href.includes('ttf')) {
-    return 'ttf'; // TrueType Font
-  }
-  if (href.includes('ttf')) {
-    return 'ttc'; // TrueType Collection (TrueType font)
-  }
-  if (href.includes('otf')) {
-    return 'otf'; // OpenType (TrueType font)
-  }
-  if (href.includes('pfb')) {
-    return 'pfb'; // Printer Font Binary (PostScript Font)
-  }
-  if (href.includes('pfm')) {
-    return 'pfm'; // Printer Font Metrics (PostScript Font)
-  }
   return '';
 }
 
@@ -232,11 +213,11 @@ Your browser may pretend to support this font by silently replacing it with loca
           // the pretty family so the gf_<Family> variantN scheme lands once
           const norm = name => prettyFamily(name).replace(/\s+/g, ' ').trim().toLowerCase();
           const urlFamilies = new Set(analyzed.bio
-            .filter(o => o.fontUrl.startsWith('face:') === false)
+            .filter(o => o.fontUrl.startsWith(FACE_KEY) === false)
             .map(o => norm(o.fontFamily)));
           const unknownFamilies = new Map(); // normalized name -> {name, pos}
           for (const o of analyzed.bio) {
-            if (o.fontUrl.startsWith('face:')) {
+            if (o.fontUrl.startsWith(FACE_KEY)) {
               const family = o.fontFamily || '';
               const n = norm(family);
               if (n && urlFamilies.has(n) === false && unknownFamilies.has(n) === false) {
@@ -247,7 +228,7 @@ Your browser may pretend to support this font by silently replacing it with loca
               }
               continue;
             }
-            const key = o.fontFamily ? [o.fontFamily, o.weight || '', o.style || ''].join('\u0000') : o.fontUrl;
+            const key = o.fontFamily ? [o.fontFamily, o.weight || '', o.style || ''].join(KEY_SEP) : o.fontUrl;
             let face = faces.get(key);
             if (face === undefined) {
               face = {
@@ -301,7 +282,7 @@ Your browser may pretend to support this font by silently replacing it with loca
           const stackName = name => /^[\w$-]+$/.test(name) ? name : `"${name}"`;
           const unknownType = n => {
             const hit = analyzed.bio.find(b =>
-              b.fontFamily && b.fontUrl.startsWith('face:') === false && norm(b.fontFamily) === n);
+              b.fontFamily && b.fontUrl.startsWith(FACE_KEY) === false && norm(b.fontFamily) === n);
             return hit ? fontType(hit.fontUrl) : '';
           };
           let unknownDivider = null;
@@ -319,7 +300,8 @@ Your browser may pretend to support this font by silently replacing it with loca
             // left column and the comma-separated families on one line
             unknownDivider = document.createElement('span');
             unknownDivider.classList.add('prop');
-            unknownDivider.textContent = 'Web fonts loaded from a script (URL unknown)';
+            unknownDivider.title = chrome.i18n.getMessage('window_remote_from_script');
+            unknownDivider.textContent = chrome.i18n.getMessage('window_extra_web_fonts');
             unknownLine = document.createElement('div');
             const families = [...unknownFamilies.entries()].sort((a, b) => {
               const pa = a[1].pos;
@@ -355,7 +337,7 @@ Your browser may pretend to support this font by silently replacing it with loca
           if (rows.length === 0 && unknownFamilies.size === 0) {
             const div = document.createElement('div');
             div.classList.add('group', 'other');
-            div.textContent = 'No web fonts detected yet';
+            div.textContent = chrome.i18n.getMessage('window_no_web_fonts');
             parent.append(div);
           }
           renderUnknown();
@@ -364,7 +346,7 @@ Your browser may pretend to support this font by silently replacing it with loca
           // separates the fonts the selection uses from the rest of the page
           const divider = document.createElement('div');
           divider.classList.add('group', 'other');
-          divider.textContent = 'Other web fonts on this page';
+          divider.textContent = chrome.i18n.getMessage('window_other_web_fonts');
           const reflow = () => {
             const ordered = [...groups.values()].sort((a, b) => {
               if (a.pos === b.pos) {
@@ -416,7 +398,7 @@ Your browser may pretend to support this font by silently replacing it with loca
                 const name = blankName(raw) === false ? raw :
                   [urlName(face.fontUrl), face.family]
                     .find(s => s && blankName(s) === false) || raw;
-                const key = name + '\u0000' + face.family;
+                const key = name + KEY_SEP + face.family;
                 let group = groups.get(key);
                 if (group === undefined) {
                   const header = document.createElement('div');
@@ -661,8 +643,6 @@ if (location.search.includes('mode=window')) {
   window.addEventListener('beforeunload', () => chrome.runtime.sendMessage({
     cmd: 'persist',
     object: {
-      left: window.screenX,
-      top: window.screenY,
       width: window.outerWidth,
       height: window.outerHeight
     }
@@ -679,6 +659,13 @@ document.addEventListener('keydown', ({key}) => {
 // localization
 [...document.querySelectorAll('[data-i18n]')].forEach(e => {
   e.textContent = chrome.i18n.getMessage(e.dataset.i18n);
+});
+[...document.querySelectorAll('[data-i18n-title]')].forEach(e => {
+  e.title = chrome.i18n.getMessage(e.dataset.i18nTitle);
+});
+// footer buttons keep their <u> access-key markup, which the translation carries
+[...document.querySelectorAll('[data-i18n-html]')].forEach(e => {
+  e.innerHTML = chrome.i18n.getMessage(e.dataset.i18nHtml);
 });
 
 // Use System Fonts

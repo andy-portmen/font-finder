@@ -68,6 +68,36 @@
     "window_footer": {
         "message": "Click on values to copy them. Press Esc to close."
     },
+    "window_extra_web_fonts": {
+        "message": "Extra Web Fonts"
+    },
+    "window_no_web_fonts": {
+        "message": "No web fonts detected yet"
+    },
+    "window_other_web_fonts": {
+        "message": "Other web fonts on this page"
+    },
+    "window_pick": {
+        "message": "<u>P</u>ick"
+    },
+    "window_pick_title": {
+        "message": "Close this window and return to Inspect mode to select another element.\nAlt + P or Ctrl + Option + P"
+    },
+    "window_rate": {
+        "message": "<u>R</u>ate this Extension"
+    },
+    "window_rate_title": {
+        "message": "Alt + R or Ctrl + Option + R"
+    },
+    "window_remote_from_script": {
+        "message": "Web fonts loaded from a script (URL unknown)"
+    },
+    "window_update": {
+        "message": "<u>U</u>pdate Font List"
+    },
+    "window_update_title": {
+        "message": "Alt + U or Ctrl + Option + U"
+    },
     "options_copy": {
         "message": "Show 'Copy Font Details' context-menu item"
     },
