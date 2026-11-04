@@ -182,11 +182,27 @@ chrome.runtime.onMessage.addListener((request, sender, respond) => {
       }, () => chrome.runtime.lastError);
     }
   }
+  else if (request.cmd === 'detected') {
+    // streamed detection from the analysis; merge and forward to the inspector
+    const id = sender.tab && tabToId.get(sender.tab.id);
+    const data = analyzed[id];
+    if (data) {
+      const fonts = data.getComputedStyle['font-family-rendered'];
+      if (fonts) {
+        for (const {fontname, ...o} of request.entries) {
+          fonts[fontname] = o;
+        }
+        chrome.runtime.sendMessage({
+          cmd: 'detected',
+          id,
+          entries: request.entries,
+          done: request.done === true
+        }, () => chrome.runtime.lastError);
+      }
+    }
+  }
   else if (request.cmd === 'analyzed') {
     const id = Math.random();
-    //
-    actions.release(sender.tab);
-    //
     request.url = sender.tab.url;
     analyzed[id] = request;
     tabToId.set(sender.tab.id, id);
@@ -198,19 +214,27 @@ chrome.runtime.onMessage.addListener((request, sender, respond) => {
       height: 750,
       mode: 'window'
     }, async prefs => {
+      // releasing the selection UI races the scripting calls that block the
+      // heavy pages; the inspector opens first
       if (prefs.mode === 'window') {
         const win = await chrome.windows.getCurrent();
         request.id = win.id;
         const left = (win.left + Math.round((win.width - prefs.width) / 2));
         const top = (win.top + Math.round((win.height - prefs.height) / 2));
-        chrome.windows.create({
-          url: '/data/window/index.html?mode=window&id=' + id + '&opener=' + sender.tab.id,
-          type: 'popup',
-          left: Math.max(win.left, left),
-          top: Math.max(win.top, top),
-          width: Math.max(prefs.width, 200),
-          height: Math.max(prefs.height, 200)
-        });
+        try {
+          await chrome.windows.create({
+            url: '/data/window/index.html?mode=window&id=' + id + '&opener=' + sender.tab.id,
+            type: 'popup',
+            left: Math.max(win.left, left),
+            top: Math.max(win.top, top),
+            width: Math.max(prefs.width, 200),
+            height: Math.max(prefs.height, 200)
+          });
+        }
+        catch (e) {
+          console.error(e);
+        }
+        actions.release(sender.tab);
       }
       else {
         chrome.scripting.executeScript({
@@ -227,7 +251,7 @@ chrome.runtime.onMessage.addListener((request, sender, respond) => {
             tabId: sender.tab.id
           },
           files: ['/data/inject/embedded.js']
-        })).catch(notify);
+        })).catch(notify).then(() => actions.release(sender.tab));
       }
     });
   }

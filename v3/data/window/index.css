@@ -88,6 +88,9 @@ footer span {
 [data-obj="font-family-rendered"] a {
   flex: 1;
 }
+[data-obj="font-family-rendered"] .detecting {
+  color: var(--fg-msg);
+}
 [data-obj="resolved-names"] > * {
   overflow: hidden;
   text-overflow: ellipsis;

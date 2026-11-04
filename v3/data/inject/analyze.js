@@ -266,7 +266,7 @@
       style: 'position: absolute; visibility: hidden; top: 0;'
     });
     document.body.appendChild(canvas);
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', {willReadFrequently: true});
     const draw = (c, fonts) => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.font = '32px ' + fonts;
@@ -423,7 +423,9 @@
       style: 'position: absolute; visibility: hidden; top: 0;'
     });
     document.body.appendChild(canvas);
-    const ctx = canvas.getContext('2d');
+    // willReadFrequently: the detection compares raw framebuffers, so the
+    // canvas stays off the GPU and readbacks stay fast
+    const ctx = canvas.getContext('2d', {willReadFrequently: true});
 
     // get the active element
     let aElement = window.aElement;
@@ -456,13 +458,26 @@
       }
     };
 
-    // generate a unique key for each font-family
+    // generate a unique key for each font-family; the framebuffer itself (not a
+    // toDataURL PNG encode, which dominated the analysis time) is the identity
     const key = (str, size, fonts, lang) => {
       canvas.lang = lang;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       applyFont(fonts, size);
       ctx.fillText(str, 0, 128);
-      return canvas.toDataURL();
+      return ctx.getImageData(0, 0, canvas.width, canvas.height);
+    };
+
+    // exact framebuffer comparison with an early exit
+    const same = (a, b) => {
+      const l = a.data;
+      const r = b.data;
+      for (let i = 0; i < l.length; i += 1) {
+        if (l[i] !== r[i]) {
+          return false;
+        }
+      }
+      return true;
     };
 
     if (aElement) {
@@ -507,7 +522,7 @@
         }
         return [].concat([], ...aFonts.map(fs => fs.replace(/[;'"]/g, '').split(/\s*,\s*/)));
       })();
-      // report
+      // the base report; the rendered fonts stream in via 'detected' messages
       const report = obj => chrome.runtime.sendMessage({
         cmd: 'analyzed',
         url: document.location.href,
@@ -546,13 +561,29 @@
         }))
       }, () => chrome.runtime.lastError);
 
+      // phase two: the detected fonts, one entry per font, streamed per
+      // segment; each entry carries the font's state so far, so the inspector
+      // can merge the entries by fontname
+      const stream = (entries, done) => chrome.runtime.sendMessage({
+        cmd: 'detected',
+        entries,
+        done
+      }, () => chrome.runtime.lastError);
+
+      // phase one: open the inspector right away with everything but the
+      // rendered fonts; the slow detection and the bio phases run behind it
+      report({});
+      runAsync();
+
+      // the candidate families are constant; build the list once
+      const list = [...fontStack, ...prefs.userFonts, ...prefs.baseFonts]
+        .filter((s, i, l) => s && l.indexOf(s) === i);
+
       // detect the font-family
       const detect = (str, size, lang = '') => {
         canvas.lang = lang;
         const fallback = key(str, size, 'notdef', lang);
 
-        const list = [...fontStack, ...prefs.userFonts, ...prefs.baseFonts]
-          .filter((s, i, l) => s && l.indexOf(s) === i);
         const ref = key(str, size, style['font-family'], lang);
         // what the canvas draws when no family exists; the pure system fallback
         // for this exact string, size, lang, weight and stretch
@@ -564,6 +595,8 @@
         const snap = new Map();
         const ink = fonts => {
           if (snap.has(fonts) === false) {
+            // lang shaping precedes the measurement whatever the call order is
+            canvas.lang = lang;
             applyFont(fonts, size);
             const m = ctx.measureText(str);
             snap.set(fonts, [
@@ -579,19 +612,23 @@
         const maybe = fonts => sameInk(ink(fonts), refInk);
         // is a known font: renders differently from the notdef-only fallback
         const known = fonts => sameInk(ink(`"${fonts}",notdef`), ink('notdef')) === false ||
-          key(str, size, `"${fonts}",notdef`, lang) !== fallback;
+          same(key(str, size, `"${fonts}",notdef`, lang), fallback) === false;
 
         // the first matching family is the reported one; every other family that
         // renders identically is one the browser may be pretending with
         const matches = [];
         for (const font of list) {
+          // ruled-out candidates must not rasterize: run the cheap prefilter
+          // before the full draw
+          if (maybe(font) === false) {
+            continue;
+          }
           const draw = key(str, size, font, lang);
           // own glyphs: a draw identical to the fallback-of-nothing means the
           // family rendered nothing itself; the bitmap came from the shared
           // fallback, so it is neither a match nor a pretender
-          if (maybe(font) &&
-            draw === ref &&
-            draw !== pure &&
+          if (same(draw, ref) &&
+            same(draw, pure) === false &&
             known(font)) {
             matches.push(font);
           }
@@ -667,9 +704,31 @@
         const obj = {};
         // code-point counts; surrogate pairs must not be double-counted
         const tot = segments.reduce((p, c) => p + [...c].length, 0);
+        // fonts whose state changed since the last push; entries carry the
+        // font's accumulated state and the inspector merges them by fontname
+        const sent = new Map();
+        const push = (done = false) => {
+          const entries = [];
+          for (const [fontname, o] of Object.entries(obj)) {
+            const before = sent.get(fontname);
+            if (before === undefined || before.percent !== o.percent ||
+              before.remote !== o.remote || before.info !== o.info) {
+              entries.push({fontname, ...o});
+              sent.set(fontname, {
+                percent: o.percent,
+                remote: o.remote,
+                info: o.info
+              });
+            }
+          }
+          if (entries.length || done) {
+            stream(entries, done);
+          }
+        };
+        const e = aElement.closest('[lang]'); // do we have a lang attribute
+        const lang = e ? e.lang : '';
         for (const str of segments) {
-          const e = aElement.closest('[lang]'); // do we have a lang attribute
-          const [font, ...pretends] = detect(str, style['font-size'], e ? e.lang : '');
+          const [font, ...pretends] = detect(str, style['font-size'], lang);
           obj[font] = obj[font] || {
             percent: 0,
             remote: false,
@@ -677,11 +736,12 @@
           };
           obj[font].percent += [...str].length / tot * 100;
           obj[font].pretends = pretends;
+          push();
         }
         // clean up
         document.fonts.delete(notdef);
-        // remote fonts
-        for (const name of Object.keys(obj)) {
+        // remote fonts; the detail gains stream as the parallel loads settle
+        await Promise.all(Object.keys(obj).map(async name => {
           const f = (fontPrefix ? fontPrefix + ' ' : '') + style['font-size'] + ' "' + name + '"';
           // possible remote font
           try {
@@ -706,12 +766,11 @@
             obj[name].remote = true;
             obj[name].info = 'FontFace details not available: ' + e.message;
           }
-        }
+          push();
+        }));
         canvas.remove();
-
-        report(obj);
-        // the slow phases run in the background and push their gains
-        runAsync();
+        // the rendered fonts are complete now
+        push(true);
       };
 
       // loading our own font-family

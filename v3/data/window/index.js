@@ -27,7 +27,6 @@ window.close = new Proxy(window.close, {
     }
   }
 });
-
 // late gains from the analysis background phases; they can arrive before the
 // 'get' response registers the inspector, so early ones are queued
 const pendingBio = [];
@@ -39,6 +38,21 @@ chrome.runtime.onMessage.addListener(request => {
     }
     else {
       pendingBio.push(...request.entries);
+    }
+  }
+});
+
+// streamed detection of the rendered fonts (data/inject/analyze.js); early
+// messages are queued until the 'get' response registers the inspector
+const pendingDetected = [];
+let mergeDetected = null;
+chrome.runtime.onMessage.addListener(request => {
+  if (request && request.cmd === 'detected' && request.id === Number(args.get('id'))) {
+    if (mergeDetected) {
+      mergeDetected(request);
+    }
+    else {
+      pendingDetected.push(request);
     }
   }
 });
@@ -143,8 +157,12 @@ chrome.runtime.sendMessage({
 
   console.info(analyzed);
 
-  // rebuilt when the background phases of the analysis push bio updates
+  // rebuilt when the background phases of the analysis push bio updates or
+  // when the streamed detection reports the rendered fonts
   let buildRemoteFonts = () => {};
+  let buildRenderedFonts = () => {};
+  let runSimilar = () => {};
+  let detectedDone = false;
 
   document.querySelector('[data-obj=url]').textContent =
     document.querySelector('[data-obj=url]').title = analyzed.url;
@@ -153,43 +171,59 @@ chrome.runtime.sendMessage({
 
     if (element && e === 'font-family-rendered') {
       const fonts = analyzed.getComputedStyle[e];
-      Object.entries(fonts).sort((a, b) => () => {
-        return b[1].percent - a[1].percent;
-      }).forEach(([fontname, {percent, remote, pretends, info}]) => {
-        const div = document.createElement('div');
-        const a = document.createElement('a');
-        if (pretends.length) {
-          // keep the inline list readable; the full list goes into the tooltip
-          const shown = pretends.slice(0, 10);
-          const extra = pretends.length - shown.length;
-          a.textContent = fontname + ' (' + shown.join(', ') +
-            (extra > 0 ? ', … +' + extra + ' more' : '') + ')';
-        }
-        else {
-          a.textContent = fontname;
-        }
-        if (pretends.length) {
-          info += `
+      // rebuilt as the detection streams in; each entry carries the font's
+      // latest state so replacing the slot keeps the map final-state accurate
+      buildRenderedFonts = () => {
+        element.textContent = '';
+        for (const [fontname, entry] of Object.entries(fonts).sort(
+          (a, b) => b[1].percent - a[1].percent
+        )) {
+          const {percent, remote, pretends} = entry;
+          // reassignable: the pretenders' explanation is appended below
+          let info = entry.info;
+          const div = document.createElement('div');
+          const a = document.createElement('a');
+          if (pretends.length) {
+            // keep the inline list readable; the full list goes into the tooltip
+            const shown = pretends.slice(0, 10);
+            const extra = pretends.length - shown.length;
+            a.textContent = fontname + ' (' + shown.join(', ') +
+              (extra > 0 ? ', … +' + extra + ' more' : '') + ')';
+          }
+          else {
+            a.textContent = fontname;
+          }
+          if (pretends.length) {
+            info += `
 
 Your browser may pretend to support this font by silently replacing it with local alternatives (shown in parentheses).
 
 ${pretends.join(', ')}`;
-        }
+          }
 
-        if (fontname && fontname.includes('system') === false) {
-          a.dataset.fontname = fontname;
-          a.dataset.cmd = 'open';
-          a.href = '#';
+          if (fontname && fontname.includes('system') === false) {
+            a.dataset.fontname = fontname;
+            a.dataset.cmd = 'open';
+            a.href = '#';
+          }
+          const span = document.createElement('span');
+          span.textContent = `${percent.toFixed(1)}% (${remote ? 'web font' : 'local'})`;
+          if (info) {
+            div.title = info.trim();
+          }
+          div.appendChild(a);
+          div.appendChild(span);
+          element.appendChild(div);
         }
-        const span = document.createElement('span');
-        span.textContent = `${percent.toFixed(1)}% (${remote ? 'web font' : 'local'})`;
-        if (info) {
-          div.title = info.trim();
+        // placeholder while the detection streams in
+        if (Object.keys(fonts).length === 0 && detectedDone === false) {
+          const div = document.createElement('div');
+          div.classList.add('detecting');
+          div.textContent = 'Detecting the rendered fonts…';
+          element.appendChild(div);
         }
-        div.appendChild(a);
-        div.appendChild(span);
-        element.appendChild(div);
-      });
+      };
+      buildRenderedFonts();
       // resolved names
       {
         const parent = document.querySelector('[data-obj=resolved-names]');
@@ -480,8 +514,15 @@ ${pretends.join(', ')}`;
           }
         });
       }
-      // similar fonts
-      fetch('fuzzysort/families.json').then(r => r.json()).then(({families}) => {
+      // similar fonts; the query set is only complete once the streamed
+      // detection is done, so the run is deferred until both are ready
+      let families = null;
+      let similarOnce = false;
+      runSimilar = () => {
+        if (similarOnce || families === null || detectedDone === false) {
+          return;
+        }
+        similarOnce = true;
         const parent = document.querySelector('[data-obj=similar-fonts]');
         const knownFonts = analyzed.getComputedStyle['font-family'].split(/\s*,\s*/)
           .map(f => f.toLowerCase());
@@ -515,6 +556,10 @@ ${pretends.join(', ')}`;
           catch (e) {}
           parent.appendChild(span);
         }
+      };
+      fetch('fuzzysort/families.json').then(r => r.json()).then(({families: f}) => {
+        families = f;
+        runSimilar();
       });
     }
     else if (e === 'font-family') {
@@ -633,10 +678,28 @@ ${pretends.join(', ')}`;
     }
     buildRemoteFonts();
   };
+  // streamed detection of the rendered fonts
+  mergeDetected = request => {
+    const fonts = analyzed.getComputedStyle['font-family-rendered'];
+    if (fonts === undefined) {
+      return;
+    }
+    for (const {fontname, ...o} of request.entries) {
+      fonts[fontname] = o;
+    }
+    if (request.done === true) {
+      detectedDone = true;
+    }
+    buildRenderedFonts();
+    runSimilar();
+  };
   // flush updates that arrived while the inspector was starting
   if (pendingBio.length) {
     mergeBio(pendingBio);
     pendingBio.length = 0;
+  }
+  for (const request of pendingDetected.splice(0)) {
+    mergeDetected(request);
   }
   chrome.runtime.onMessage.addListener(request => {
     if (request === 'close-inspector') {
