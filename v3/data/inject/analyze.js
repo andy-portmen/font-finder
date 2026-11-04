@@ -829,13 +829,34 @@
           if (n === chunks.length - 1 && more) {
             // the collapsed overflow segment; the block slicing is skipped so
             // the merged chunks stay one detection unit
-            segments.push({str: o.str, sample: '', collapsed: true, more, ctx: contextOf(o.el)});
+            segments.push({str: o.str, sample: '', collapsed: true, more, ctx: contextOf(o.el), chunk: n});
           }
           else {
             for (const s of bucket(o.str)) {
-              segments.push({str: s, sample: preview(s), collapsed: false, more: 0, ctx: contextOf(o.el)});
+              segments.push({str: s, sample: preview(s), collapsed: false, more: 0, ctx: contextOf(o.el), chunk: n});
             }
           }
+        }
+        // detection is bounded to SEG_CAP units per element; beyond the cap
+        // the trailing segments merge into one collapsed unit so the percents
+        // keep summing to 100, and the count keeps its truth by adding up the
+        // hidden text nodes of every merged piece
+        const SEG_CAP = 10;
+        if (segments.length > SEG_CAP) {
+          const tail = segments.slice(SEG_CAP - 1);
+          const more = new Set(tail.map(o => o.chunk)).size +
+            tail.reduce((p, c) => p + c.more, 0);
+          segments.length = SEG_CAP - 1;
+          segments.push({
+            str: tail.map(o => o.str).join(''),
+            // the block slicing is skipped so the merged segments stay one
+            // detection unit
+            sample: '',
+            collapsed: true,
+            more,
+            // the merged units render under the first hidden segment's context
+            ctx: tail[0].ctx
+          });
         }
         const obj = {};
         // code-point counts; surrogate pairs must not be double-counted

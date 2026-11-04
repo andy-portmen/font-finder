@@ -748,18 +748,19 @@ ${pretends.join(', ')}`;
     // only the nested content is rebuilt on each streamed update
     const container = segmentCells[1];
     container.replaceChildren();
-    for (const {fontname, sample, collapsed, more, percent, stack} of analyzed.segments) {
-      // the stack line; the labels reuse the exact parent-row strings
+    for (const [i, {fontname, sample, collapsed, more, percent, stack}] of analyzed.segments.entries()) {
+      // the stack line; the labels are numbered per segment and reuse the
+      // exact parent-row strings
       const p1 = document.createElement('span');
       p1.classList.add('prop');
-      p1.textContent = 'font-family (stack)';
+      p1.textContent = `${i + 1} · font-family (stack)`;
       const v1 = document.createElement('span');
       v1.classList.add('seg-stack');
       v1.textContent = stack || '';
       // the rendered line, rendered like the Font being Rendered row
       const p2 = document.createElement('span');
       p2.classList.add('prop');
-      p2.textContent = 'Font being Rendered';
+      p2.textContent = `${i + 1} · Font being Rendered`;
       const v2 = document.createElement('div');
       v2.classList.add('seg-rendered');
       const a = document.createElement('a');
