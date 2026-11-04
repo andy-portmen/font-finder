@@ -1,0 +1,32 @@
+brotli-dec-wasm@2.3.2 (vendored decoder-only build)
+https://www.jsdelivr.com/package/npm/brotli-dec-wasm
+https://www.npmjs.com/package/brotli-dec-wasm
+Dual licensed: MIT (see LICENSE-MIT.txt) or Apache-2.0
+
+Vendored files:
+  pkg/brotli_dec_wasm.js       wasm-bindgen ESM glue (9.4 KB)
+  pkg/brotli_dec_wasm_bg.wasm  brotli decoder (208 KB)
+  loader.js                    ES module wrapper; exposes self.brotliReady /
+                               self.brotliDec to the classic scripts
+
+Why vendored: WOFF2 is brotli-compressed. Firefox 147+ and Safari 18.4+
+provide DecompressionStream('brotli') natively and are used first;
+Chrome/Edge do not ship it yet, so this decoder is the fallback.
+
+How to update:
+  1. Check the latest version at
+     https://www.jsdelivr.com/package/npm/brotli-dec-wasm
+  2. Download straight from jsdelivr and overwrite the vendored copies:
+       https://cdn.jsdelivr.net/npm/brotli-dec-wasm@<version>/pkg/brotli_dec_wasm.js
+       https://cdn.jsdelivr.net/npm/brotli-dec-wasm@<version>/pkg/brotli_dec_wasm_bg.wasm
+       https://cdn.jsdelivr.net/npm/brotli-dec-wasm@<version>/LICENSE-MIT.txt
+     or install in a scratch dir and copy from node_modules:
+       bun add brotli-dec-wasm@<version>
+       cp node_modules/brotli-dec-wasm/pkg/* pkg/
+  3. If the exported API changed, update loader.js to match: it loads the
+     default export (async init) and exposes the whole module namespace
+     (incl. the DecompressStream class) as self.brotliDec, which the
+     fallback path in resolve.js consumes.
+  4. Bump the version on the first line of this README.
+  5. Verify: open the inspector on a page that loads woff2 fonts, expand
+     the "Resolved Names" section and confirm rows resolve.

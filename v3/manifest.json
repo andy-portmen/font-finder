@@ -47,6 +47,9 @@
       "description": "Execute Action"
     }
   },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; worker-src 'self';"
+  },
   "browser_specific_settings": {
     "gecko": {
       "id": "{a658a273-612e-489e-b4f1-5344e672f4f5}",

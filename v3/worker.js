@@ -5,6 +5,7 @@ if (typeof importScripts !== 'undefined') {
 }
 
 const analyzed = {};
+const tabToId = new Map();
 
 const notify = async e => {
   console.info(e);
@@ -160,6 +161,27 @@ chrome.runtime.onMessage.addListener((request, sender, respond) => {
   else if (request.cmd === 'get') {
     respond(analyzed[request.id]);
   }
+  else if (request.cmd === 'bio') {
+    // late gains from the analysis background phases; merge and forward to the inspector
+    const id = sender.tab && tabToId.get(sender.tab.id);
+    const data = analyzed[id];
+    if (data) {
+      for (const entry of request.entries) {
+        const i = data.bio.findIndex(o => o.fontUrl === entry.fontUrl);
+        if (i === -1) {
+          data.bio.push(entry);
+        }
+        else {
+          data.bio[i] = entry;
+        }
+      }
+      chrome.runtime.sendMessage({
+        cmd: 'bio',
+        id,
+        entries: request.entries
+      }, () => chrome.runtime.lastError);
+    }
+  }
   else if (request.cmd === 'analyzed') {
     const id = Math.random();
     //
@@ -167,6 +189,7 @@ chrome.runtime.onMessage.addListener((request, sender, respond) => {
     //
     request.url = sender.tab.url;
     analyzed[id] = request;
+    tabToId.set(sender.tab.id, id);
     //
     chrome.runtime.sendMessage('close-inspector', () => chrome.runtime.lastError);
     //

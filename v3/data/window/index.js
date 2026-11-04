@@ -31,6 +31,32 @@ function rgb2hex(rgb) {
     parseInt(rgb[3]).toString(16).padStart(2, '0') : rgb;
 }
 
+// cap a long U+XXXX coverage string for inline display
+const capRanges = str => {
+  const parts = str.split(', ');
+  return parts.length > 10 ? parts.slice(0, 10).join(', ') + ', …' : str;
+};
+
+// compose the Name cell of a font file: the CSS family when known, otherwise
+// what the file itself reported, plus weight/style, subset and glyph coverage
+const composeInfo = (row, names) => {
+  const info = row.info;
+  let family = info.family;
+  let subfamily = '';
+  if (family === '' && names) {
+    family = names.family;
+    subfamily = names.subfamily || '';
+    if (subfamily && family.toLowerCase().includes(subfamily.toLowerCase())) {
+      subfamily = '';
+    }
+  }
+  const coverage = info.range || (names ? names.ranges : '') || '';
+  row.cells[1].textContent = [
+    family, subfamily, info.weight, info.style, info.subset, coverage && capRanges(coverage)
+  ].filter(Boolean).join(' · ');
+  row.cells[1].title = coverage;
+};
+
 function fontType(href) {
   href = href.toLowerCase();
 
@@ -127,16 +153,195 @@ Your browser may pretend to support this font by silently replacing it with loca
         div.appendChild(span);
         element.appendChild(div);
       });
-      // remote fonts
+      // resolved names
       {
-        const parent = document.querySelector('[data-obj=remote-fonts]');
-        for (const o of analyzed.bio) {
-          const a = document.createElement('a');
-          a.href = o.fontUrl;
-          a.dataset.cmd = 'native';
-          a.title = a.textContent = o.fontFamily || a.href.split('/').at(-1) || 'Unknown Name';
-          parent.appendChild(a);
-        }
+        const parent = document.querySelector('[data-obj=resolved-names]');
+        // a left-click copies instead of navigating; middle-click still opens
+        parent.addEventListener('click', e => {
+          if (e.target.closest('a')) {
+            e.preventDefault();
+          }
+        });
+        let current = null;
+
+        // rebuildable: the background phases of the analysis push bio updates
+        const buildRemoteFonts = () => {
+          if (current) {
+            current.controller?.abort();
+          }
+          parent.textContent = '';
+          // stack order for the group sorting
+          const stack = analyzed.getComputedStyle['font-family'].split(/\s*,\s*/)
+            .map(f => f.replace(/['"]/g, '').trim().toLowerCase());
+          // one resolution per face (family + weight + style); the resolved name
+          // applies to all the subset URLs of that face
+          const faces = new Map();
+          const rows = [];
+          for (const o of analyzed.bio) {
+            if (o.fontUrl.startsWith('data:')) {
+              continue;
+            }
+            const key = o.fontFamily ? [o.fontFamily, o.weight || '', o.style || ''].join('\u0000') : o.fontUrl;
+            let face = faces.get(key);
+            if (face === undefined) {
+              face = {
+                fontUrl: o.fontUrl,
+                family: o.fontFamily || '',
+                pos: o.fontFamily ? stack.indexOf(o.fontFamily.trim().toLowerCase()) : -1,
+                rows: []
+              };
+              faces.set(key, face);
+            }
+            // link cell; shows the full URL; a left-click copies it, middle-click still opens
+            const a = document.createElement('a');
+            a.href = o.fontUrl;
+            a.dataset.cmd = 'native';
+            a.dataset.obj = 'resolved-url';
+            a.dataset.url = o.fontUrl;
+            a.textContent = o.fontUrl;
+            // name cell; explains the file without resolving it: the family, the weight
+            // and the unicode-range of the @font-face that references it
+            const subset = (/\.(\d+)\.woff2$/i.exec(o.fontUrl) || [])[1];
+            const span = document.createElement('span');
+            span.dataset.obj = 'resolved-name';
+            const row = {
+              cells: [a, span],
+              resolved: false,
+              info: {
+                family: o.fontFamily || '',
+                weight: o.weight && o.weight !== '400' ? o.weight : '',
+                style: o.style && o.style !== 'normal' ? o.style : '',
+                subset: subset ? 'subset ' + subset : '',
+                range: o['unicode-range'] || ''
+              }
+            };
+            composeInfo(row);
+            face.rows.push(row);
+            rows.push(row);
+            for (const cell of row.cells) {
+              cell.classList.add('pending');
+            }
+            parent.append(a, span);
+          }
+          // group rows by the resolved name; the headers are created as names become known
+          const groups = new Map();
+          // separates the fonts the selection uses from the rest of the page
+          const divider = document.createElement('div');
+          divider.classList.add('group', 'other');
+          divider.textContent = 'Other web fonts on this page';
+          const reflow = () => {
+            const ordered = [...groups.values()].sort((a, b) => {
+              if (a.pos === b.pos) {
+                return a.header.textContent.localeCompare(b.header.textContent);
+              }
+              if (a.pos === -1) {
+                return 1;
+              }
+              if (b.pos === -1) {
+                return -1;
+              }
+              return a.pos - b.pos;
+            });
+            const hasStack = ordered.some(group => group.pos !== -1);
+            let others = false;
+            for (const group of ordered) {
+              if (hasStack && group.pos === -1 && others === false) {
+                others = true;
+                parent.append(divider);
+              }
+              parent.append(group.header);
+              for (const row of group.rows) {
+                parent.append(...row.cells);
+              }
+            }
+            for (const row of rows) {
+              if (row.resolved === false) {
+                parent.append(...row.cells);
+              }
+            }
+          };
+          // resolve one by one, while the section is expanded
+          let controller = null;
+          const runner = async ctl => {
+            for (const face of faces.values()) {
+              if (ctl.signal.aborted || face.done) {
+                continue;
+              }
+              try {
+                const names = await resolveFont(face.fontUrl, ctl.signal);
+                const name = displayName(names);
+                const key = name + '\u0000' + face.family;
+                let group = groups.get(key);
+                if (group === undefined) {
+                  const header = document.createElement('div');
+                  header.classList.add('group');
+                  header.dataset.obj = 'resolved-name';
+                  // keep the connection to the font stack visible
+                  header.textContent = face.family ? name + ' (' + face.family + ')' : name;
+                  header.title = 'PostScript name: ' + names.postscript;
+                  group = {
+                    header,
+                    rows: [],
+                    pos: face.pos
+                  };
+                  groups.set(key, group);
+                }
+                for (const row of face.rows) {
+                  row.resolved = true;
+                  group.rows.push(row);
+                  // fill in what the file itself told us
+                  composeInfo(row, names);
+                  for (const cell of row.cells) {
+                    cell.classList.remove('pending');
+                  }
+                }
+                face.done = true;
+              }
+              catch (e) {
+                if (ctl.signal.aborted === false) {
+                  face.done = true;
+                  for (const row of face.rows) {
+                    row.cells[0].title = 'Not resolved: ' + (e.message || e);
+                  }
+                }
+              }
+              reflow();
+            }
+          };
+          const start = () => {
+            if (controller && controller.signal.aborted === false) {
+              return;
+            }
+            controller = new AbortController();
+            current.controller = controller;
+            runner(controller);
+          };
+          current = {
+            controller: null,
+            start
+          };
+          // start when the section is expanded
+          if (document.getElementById('remote-check').checked) {
+            start();
+          }
+        };
+        buildRemoteFonts();
+        // the prefs script checks the box after this script ran; no event fires
+        chrome.storage.local.get({
+          'remote-check': false
+        }, prefs => {
+          if (prefs['remote-check'] && current && current.controller === null) {
+            current.start();
+          }
+        });
+        document.getElementById('remote-check').addEventListener('change', e => {
+          if (e.target.checked) {
+            current?.start();
+          }
+          else {
+            current?.controller?.abort();
+          }
+        });
       }
       // similar fonts
       fetch('fuzzysort/families.json').then(r => r.json()).then(({families}) => {
@@ -282,6 +487,19 @@ Your browser may pretend to support this font by silently replacing it with loca
     if (request === 'close-inspector') {
       window.close();
     }
+    // late gains from the analysis background phases
+    else if (request.cmd === 'bio' && request.id === Number(args.get('id'))) {
+      for (const entry of request.entries) {
+        const i = analyzed.bio.findIndex(o => o.fontUrl === entry.fontUrl);
+        if (i === -1) {
+          analyzed.bio.push(entry);
+        }
+        else {
+          analyzed.bio[i] = entry;
+        }
+      }
+      buildRemoteFonts();
+    }
   });
 });
 
@@ -346,7 +564,9 @@ document.addEventListener('click', async e => {
 
   if (target.dataset.obj && target.textContent.trim()) {
     try {
-      await navigator.clipboard.writeText(target.textContent);
+      // resolved-url cells show the family name but copy the font URL
+      const text = target.dataset.obj === 'resolved-url' ? target.dataset.url : target.textContent;
+      await navigator.clipboard.writeText(text);
       toast('"' + target.dataset.obj + '" ' + chrome.i18n.getMessage('window_copy'));
     }
     catch (e) {

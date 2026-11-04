@@ -55,29 +55,24 @@ footer span {
   text-overflow: ellipsis;
 }
 [data-obj="font-family"],
-[data-obj="remote-fonts"],
 [data-obj="similar-fonts"] {
   display: flex;
   gap: 2px 5px;
   flex-wrap: wrap;
 }
 [data-obj="font-family"] a,
-[data-obj="remote-fonts"] a,
 [data-obj="similar-fonts"] span {
   white-space: nowrap;
 }
 [data-obj="font-family"] a:not([data-cmd="open"]),
-[data-obj="remote-fonts"] a:not([data-cmd="native"]),
 [data-obj="similar-fonts"] span {
   pointer-events: none;
 }
 [data-obj="font-family"] a.na,
-[data-obj="remote-fonts"] a.na,
 [data-obj="similar-fonts"] span.na {
   text-decoration: underline dashed;
 }
 [data-obj="font-family"] a:not(:last-child)::after,
-[data-obj="remote-fonts"] a:not(:last-child)::after,
 [data-obj="similar-fonts"] span:not(:last-child)::after {
   content: ',';
   display: inline-block;
@@ -93,6 +88,21 @@ footer span {
 [data-obj="font-family-rendered"] a {
   flex: 1;
 }
+[data-obj="resolved-names"] > * {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+[data-obj="resolved-names"] .group {
+  grid-column: 1 / -1;
+  color: var(--fg-li);
+}
+[data-obj="resolved-names"] .group.other {
+  color: var(--fg-msg);
+}
+[data-obj="resolved-names"] .pending {
+  opacity: 0.4;
+}
 #body {
   overflow: overlay;
 }
@@ -104,7 +114,7 @@ footer span {
 }
 #new-content {
   display: grid;
-  grid-template-columns: min-content 12ch 1fr;
+  grid-template-columns: min-content min-content 1fr;
   align-items: center;
   align-self: self-start;
   padding-inline: 1ch;
@@ -170,8 +180,7 @@ footer span {
 .center span {
   flex: 1;
 }
-.two a[href],
-[data-obj="remote-fonts"] a {
+.two a[href] {
   color: var(--link);
   text-decoration: none;
 }

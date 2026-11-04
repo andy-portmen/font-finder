@@ -2,42 +2,88 @@
 
 {
   const bio = new Map();
+  // a src may list several sources; url() ones are downloadable, local() ones are not
+  const urlPattern = /url\(\s*(['"]?)(.*?)\1\s*\)/gi;
 
-  for (const stylesheet of document.styleSheets) {
-    try {
-      for (const rule of stylesheet.cssRules) {
-        // Check if it's an @font-face rule
-        if (rule instanceof CSSFontFaceRule) {
-          // Extract the font URL and font name from the cssText
-          const cssText = rule.cssText;
-          const fontUrlMatches = cssText.match(/url\((.*?)\)/i);
-          const fontFamilyMatches = cssText.match(/font-family:\s*(.*?);/i);
+  const addFace = (rule, base, knownOnly) => {
+    const s = rule.style;
+    const fontFamily = s.getPropertyValue('font-family').replace(/['"]/g, '').trim();
+    if (fontFamily === '') {
+      return;
+    }
+    let m;
+    while (m = urlPattern.exec(s.getPropertyValue('src'))) {
+      let fontUrl = m[2].trim();
+      if (fontUrl) {
+        // full absolute URL, relative to the stylesheet, not the document
+        try {
+          fontUrl = new URL(fontUrl, base).href;
+        }
+        catch (e) {}
 
-          if (fontUrlMatches && fontUrlMatches.length > 1 && fontFamilyMatches && fontFamilyMatches.length > 1) {
-            let fontUrl = fontUrlMatches[1].replace(/['"]/g, '');
-
-            if (fontUrl) {
-              // full absolute URL
-              try {
-                fontUrl = new URL(fontUrl, location.href).href;
-              }
-              catch (e) {}
-
-              if (bio.has(fontUrl) === false) {
-                const fontFamily = fontFamilyMatches[1].replace(/['"]/g, '');
-                bio.set(fontUrl, {
-                  fontFamily
-                });
-              }
-            }
+        // knownOnly: dynamic font CSS (like Google's) may return different URLs on
+        // every fetch; only attach metadata to URLs the page actually loaded
+        if (fontUrl && (knownOnly === false || bio.has(fontUrl))) {
+          if (bio.has(fontUrl) === false || bio.get(fontUrl).fontFamily === undefined) {
+            // resource-only entries (no fontFamily) get replaced by the @font-face info
+            bio.set(fontUrl, {
+              fontFamily,
+              weight: s.getPropertyValue('font-weight'),
+              style: s.getPropertyValue('font-style'),
+              stretch: s.getPropertyValue('font-stretch'),
+              display: s.getPropertyValue('font-display'),
+              'unicode-range': s.getPropertyValue('unicode-range')
+            });
           }
         }
       }
     }
+  };
+
+  // @font-face may be nested inside @media, @supports, @layer, ...
+  const walk = (rules, base, knownOnly) => {
+    for (const rule of rules) {
+      if (rule instanceof CSSFontFaceRule) {
+        addFace(rule, base, knownOnly);
+      }
+      else if (rule.cssRules) {
+        walk(rule.cssRules, base, knownOnly);
+      }
+    }
+  };
+
+  // cross-origin stylesheets block cssRules access; their text is fetched later
+  const unreadable = [];
+  for (const stylesheet of document.styleSheets) {
+    try {
+      walk(stylesheet.cssRules, stylesheet.href || location.href, false);
+    }
     catch (e) {
-      console.error(e, stylesheet, stylesheet.href);
+      if (stylesheet.href) {
+        unreadable.push(stylesheet.href);
+      }
+      else {
+        console.error(e, stylesheet);
+      }
     }
   }
+
+  // font-serving CDNs serve their CSS with CORS, so the blocked rules can be
+  // recovered by fetching the stylesheet and parsing it with the CSSOM
+  const enrich = async () => {
+    for (const href of unreadable) {
+      try {
+        const response = await fetch(href, {credentials: 'omit'});
+        if (response.ok === false) {
+          continue;
+        }
+        const sheet = new CSSStyleSheet();
+        sheet.replaceSync(await response.text());
+        walk(sheet.cssRules, href, true);
+      }
+      catch (e) {}
+    }
+  };
   for (const e of performance.getEntriesByType('resource')) {
     if (e.initiatorType === 'font' || /\.(woff2?|eot|ttf|ttc|otf|pfb|pfm)(\?|$)/i.test(e.name)) {
       if (bio.has(e.name) === false) {
@@ -47,6 +93,146 @@
       }
     }
   }
+
+  // the report is sent before the slow phases run; their gains are pushed later
+  const initial = new Map(bio);
+  const sendBioUpdate = () => {
+    const entries = [];
+    for (const [fontUrl, o] of bio.entries()) {
+      const before = initial.get(fontUrl);
+      if (before === undefined || (before.fontFamily === undefined && o.fontFamily !== undefined)) {
+        entries.push({
+          fontUrl,
+          ...o
+        });
+      }
+    }
+    if (entries.length) {
+      chrome.runtime.sendMessage({
+        cmd: 'bio',
+        entries
+      }, () => chrome.runtime.lastError);
+    }
+  };
+  const runAsync = async () => {
+    await enrich();
+    sendBioUpdate();
+    await attribute();
+    sendBioUpdate();
+  };
+
+  // JS-constructed FontFaces (like the gf_ scheme) expose their family but never
+  // their URL, so unclaimed URLs are attributed by rendering: a probe face loaded
+  // from the URL must draw the same glyphs as the family's faces do
+  const attribute = async () => {
+    const candidates = [];
+    for (const face of document.fonts) {
+      if (face.family !== 'notdef' && candidates.includes(face.family) === false) {
+        candidates.push(face.family);
+      }
+    }
+    const unclaimed = [];
+    for (const [fontUrl, o] of bio.entries()) {
+      if (o.fontFamily === undefined) {
+        unclaimed.push(fontUrl);
+      }
+    }
+    if (candidates.length === 0 || unclaimed.length === 0) {
+      return;
+    }
+    // stack families first; ties resolve to the name shown in the stack
+    const stack = (() => {
+      let element = window.aElement;
+      if (!element || element === document.body) {
+        try {
+          const range = window.getSelection().getRangeAt(0);
+          element = range.commonAncestorContainer;
+          if (element.nodeType !== Element.ELEMENT_NODE) {
+            element = element.parentElement;
+          }
+        }
+        catch (e) {}
+      }
+      const families = [];
+      for (let e = element; e && e !== document; e = e.parentNode) {
+        families.push(...window.getComputedStyle(e)['font-family'].replace(/[;'"]/g, '').split(/\s*,\s*/));
+      }
+      return families;
+    })();
+    const pos = family => {
+      const i = stack.indexOf(family);
+      return i === -1 ? Number.MAX_SAFE_INTEGER : i;
+    };
+    candidates.sort((a, b) => pos(a) - pos(b));
+
+    const chars = ['A', 'g', 'M', 'W', '1', '?', '!', '日', '本', '語', '한', 'α', 'Ω', 'ا', 'а', '中'];
+    const canvas = Object.assign(document.createElement('canvas'), {
+      width: 60,
+      height: 44,
+      style: 'position: absolute; visibility: hidden; top: 0;'
+    });
+    document.body.appendChild(canvas);
+    const ctx = canvas.getContext('2d');
+    const draw = (c, fonts) => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.font = '32px ' + fonts;
+      ctx.fillText(c, 5, 34);
+      return canvas.toDataURL();
+    };
+    // what a missing glyph looks like; those chars carry no signal
+    const fallbacks = {};
+    for (const c of chars) {
+      fallbacks[c] = draw(c, '__ff_none__');
+    }
+    const familyBitmaps = {};
+    for (const family of candidates) {
+      for (const c of chars) {
+        familyBitmaps[family + '\u0000' + c] = draw(c, `"${family}"`);
+      }
+    }
+    for (const fontUrl of unclaimed) {
+      const probe = new FontFace('ff_probe', `url(${fontUrl})`);
+      try {
+        document.fonts.add(probe);
+        await probe.load();
+        const scores = new Map();
+        for (const c of chars) {
+          const bitmap = draw(c, '"ff_probe"');
+          if (bitmap === fallbacks[c]) {
+            continue;   // the file does not cover this char
+          }
+          for (const family of candidates) {
+            if (familyBitmaps[family + '\u0000' + c] === bitmap) {
+              scores.set(family, (scores.get(family) || 0) + 1);
+            }
+          }
+        }
+        let best = null;
+        let bestScore = 1;
+        for (const [family, score] of scores) {
+          if (score > bestScore) {
+            bestScore = score;
+            best = family;
+          }
+        }
+        if (best !== null) {
+          const matched = [...document.fonts].find(f => f.family === best);
+          // no unicode-range here: per-file coverage comes from the file's own
+          // cmap when the inspector resolves it
+          bio.set(fontUrl, {
+            fontFamily: best,
+            weight: matched ? matched.weight : '400',
+            style: matched ? matched.style : 'normal',
+            stretch: matched ? matched.stretch : 'normal',
+            display: matched ? matched.display : 'auto'
+          });
+        }
+      }
+      catch (e) {}
+      document.fonts.delete(probe);
+    }
+    canvas.remove();
+  };
 
   chrome.storage.local.get({
     userFonts: [],
@@ -334,6 +520,8 @@
         ranges.length = 0;
 
         report(obj);
+        // the slow phases run in the background and push their gains
+        runAsync();
       };
 
       // loading our own font-family
