@@ -159,7 +159,11 @@ chrome.runtime.sendMessage({
         const div = document.createElement('div');
         const a = document.createElement('a');
         if (pretends.length) {
-          a.textContent = fontname + ' (' + pretends.join(', ') + ')';
+          // keep the inline list readable; the full list goes into the tooltip
+          const shown = pretends.slice(0, 10);
+          const extra = pretends.length - shown.length;
+          a.textContent = fontname + ' (' + shown.join(', ') +
+            (extra > 0 ? ', … +' + extra + ' more' : '') + ')';
         }
         else {
           a.textContent = fontname;
@@ -167,7 +171,9 @@ chrome.runtime.sendMessage({
         if (pretends.length) {
           info += `
 
-Your browser may pretend to support this font by silently replacing it with local alternatives (shown in parentheses).`;
+Your browser may pretend to support this font by silently replacing it with local alternatives (shown in parentheses).
+
+${pretends.join(', ')}`;
         }
 
         if (fontname && fontname.includes('system') === false) {

@@ -554,6 +554,9 @@
         const list = [...fontStack, ...prefs.userFonts, ...prefs.baseFonts]
           .filter((s, i, l) => s && l.indexOf(s) === i);
         const ref = key(str, size, style['font-family'], lang);
+        // what the canvas draws when no family exists; the pure system fallback
+        // for this exact string, size, lang, weight and stretch
+        const pure = key(str, size, '__ff_none__', lang);
 
         // ink-extent snapshots per font-family, cached for the scan; identical
         // pixels imply identical ink, so differing metrics rule a family out
@@ -582,8 +585,13 @@
         // renders identically is one the browser may be pretending with
         const matches = [];
         for (const font of list) {
-          if (maybe(font) && // font is equal to the referenced font
-            key(str, size, font, lang) === ref &&
+          const draw = key(str, size, font, lang);
+          // own glyphs: a draw identical to the fallback-of-nothing means the
+          // family rendered nothing itself; the bitmap came from the shared
+          // fallback, so it is neither a match nor a pretender
+          if (maybe(font) &&
+            draw === ref &&
+            draw !== pure &&
             known(font)) {
             matches.push(font);
           }
