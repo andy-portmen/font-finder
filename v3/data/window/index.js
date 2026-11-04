@@ -828,7 +828,23 @@ document.addEventListener('keydown', ({key}) => {
 });
 
 // Use System Fonts
-document.getElementById('userFonts').onclick = () => self.queryLocalFonts().then(fonts => {
+document.getElementById('userFonts').onclick = async () => {
+  let fonts;
+  try {
+    fonts = await self.queryLocalFonts();
+  }
+  catch (e) {
+    // the user dismissed the picker → keep the button for a retry; any other
+    // failure means the API is not usable here (the Permissions Policy
+    // disallows "local-fonts" in the embedded iframe) → hide it silently
+    if (e.name !== 'AbortError') {
+      document.getElementById('userFonts').classList.add('hidden');
+      chrome.storage.local.set({
+        userFontsAccess: false
+      });
+    }
+    return;
+  }
   return chrome.storage.local.get({
     userFonts: []
   }, prefs => {
@@ -846,15 +862,32 @@ document.getElementById('userFonts').onclick = () => self.queryLocalFonts().then
       alert(fonts.length + ' new fonts are imported');
       document.getElementById('userFonts').classList.add('hidden');
     }
-  });
-}).then(() => chrome.storage.local.set({
-  userFontsAccess: false
-}));
+  }).then(() => chrome.storage.local.set({
+    userFontsAccess: false
+  }));
+};
 chrome.storage.local.get({
   userFontsAccess: true
-}, prefs => {
-  if (prefs.userFontsAccess === true && typeof queryLocalFonts !== 'undefined') {
-    document.getElementById('userFonts').classList.remove('hidden');
+}, async prefs => {
+  if (prefs.userFontsAccess !== true || typeof queryLocalFonts === 'undefined') {
+    return;
+  }
+  // in embedded mode the API exists but the Permissions Policy inherited
+  // from the cross-origin host page disallows "local-fonts"; probe for
+  // availability before showing the button
+  try {
+    const status = await navigator.permissions.query({name: 'local-fonts'});
+    if (status.state !== 'denied') {
+      document.getElementById('userFonts').classList.remove('hidden');
+    }
+  }
+  catch (e) {
+    // the permission cannot even be queried → fall back to a policy check;
+    // only show the button when the policy explicitly lists "local-fonts"
+    const list = document.featurePolicy?.allowedFeatures?.() || [];
+    if (list.includes('local-fonts')) {
+      document.getElementById('userFonts').classList.remove('hidden');
+    }
   }
 });
 
