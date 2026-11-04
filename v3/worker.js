@@ -194,8 +194,6 @@ chrome.runtime.onMessage.addListener((request, sender, respond) => {
     chrome.runtime.sendMessage('close-inspector', () => chrome.runtime.lastError);
     //
     chrome.storage.local.get({
-      left: 0,
-      top: 0,
       width: 600,
       height: 750,
       mode: 'window'
@@ -203,8 +201,8 @@ chrome.runtime.onMessage.addListener((request, sender, respond) => {
       if (prefs.mode === 'window') {
         const win = await chrome.windows.getCurrent();
         request.id = win.id;
-        const left = prefs.left || (win.left + Math.round((win.width - 500) / 2));
-        const top = prefs.top || (win.top + Math.round((win.height - 700) / 2));
+        const left = (win.left + Math.round((win.width - prefs.width) / 2));
+        const top = (win.top + Math.round((win.height - prefs.height) / 2));
         chrome.windows.create({
           url: '/data/window/index.html?mode=window&id=' + id + '&opener=' + sender.tab.id,
           type: 'popup',
