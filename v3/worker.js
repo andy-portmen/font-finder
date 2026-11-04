@@ -140,6 +140,9 @@ chrome.action.onClicked.addListener(tab => {
 });
 
 chrome.runtime.onMessage.addListener((request, sender, respond) => {
+  console.log(request);
+
+
   if (request.cmd === 'release') {
     actions.release(sender.tab);
   }

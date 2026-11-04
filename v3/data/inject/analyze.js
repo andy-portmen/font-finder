@@ -5,6 +5,25 @@
   // a src may list several sources; url() ones are downloadable, local() ones are not
   const urlPattern = /url\(\s*(['"]?)(.*?)\1\s*\)/gi;
 
+  // families document.fonts proves are loaded; JS-constructed faces (like
+  // Google's gf_ scheme) expose their family but never their URL
+  const loadedFamilies = new Set();
+  for (const face of document.fonts) {
+    const name = face.family.replace(/['"]/g, '').trim().toLowerCase();
+    loadedFamilies.add(name);
+    // 'gf_Redaction_10 variant0' -> 'redaction 10'
+    const m = /^gf_(.+?)(?: variant\d+)?$/.exec(name);
+    if (m) {
+      loadedFamilies.add(m[1].replace(/_/g, ' ').trim());
+    }
+  }
+
+  // keep late font loads in the resource timing buffer for the async phases
+  try {
+    performance.setResourceTimingBufferSize(10000);
+  }
+  catch (e) {}
+
   const addFace = (rule, base, knownOnly) => {
     const s = rule.style;
     const fontFamily = s.getPropertyValue('font-family').replace(/['"]/g, '').trim();
@@ -22,8 +41,9 @@
         catch (e) {}
 
         // knownOnly: dynamic font CSS (like Google's) may return different URLs on
-        // every fetch; only attach metadata to URLs the page actually loaded
-        if (fontUrl && (knownOnly === false || bio.has(fontUrl))) {
+        // every fetch; only attach metadata to URLs the page actually loaded,
+        // unless the family is one document.fonts proves is loaded
+        if (fontUrl && (knownOnly === false || bio.has(fontUrl) || loadedFamilies.has(fontFamily.toLowerCase()))) {
           if (bio.has(fontUrl) === false || bio.get(fontUrl).fontFamily === undefined) {
             // resource-only entries (no fontFamily) get replaced by the @font-face info
             bio.set(fontUrl, {
@@ -54,16 +74,35 @@
 
   // cross-origin stylesheets block cssRules access; their text is fetched later
   const unreadable = [];
-  for (const stylesheet of document.styleSheets) {
+  const walkSheet = (sheet, base) => {
     try {
-      walk(stylesheet.cssRules, stylesheet.href || location.href, false);
+      walk(sheet.cssRules, base, false);
     }
     catch (e) {
-      if (stylesheet.href) {
-        unreadable.push(stylesheet.href);
+      if (sheet.href) {
+        unreadable.push(sheet.href);
       }
       else {
-        console.error(e, stylesheet);
+        console.error(e, sheet);
+      }
+    }
+  };
+  for (const stylesheet of document.styleSheets) {
+    walkSheet(stylesheet, stylesheet.href || location.href);
+  }
+  // constructable stylesheets are not part of document.styleSheets
+  for (const sheet of document.adoptedStyleSheets || []) {
+    walkSheet(sheet, location.href);
+  }
+  // nor are the styles of shadow roots
+  for (const el of document.querySelectorAll('*')) {
+    const root = el.shadowRoot;
+    if (root) {
+      for (const sheet of root.styleSheets) {
+        walkSheet(sheet, sheet.href || location.href);
+      }
+      for (const sheet of root.adoptedStyleSheets || []) {
+        walkSheet(sheet, location.href);
       }
     }
   }
@@ -84,7 +123,9 @@
       catch (e) {}
     }
   };
-  for (const e of performance.getEntriesByType('resource')) {
+
+  // font URLs the page actually fetched
+  const addResource = e => {
     if (e.initiatorType === 'font' || /\.(woff2?|eot|ttf|ttc|otf|pfb|pfm)(\?|$)/i.test(e.name)) {
       if (bio.has(e.name) === false) {
         bio.set(e.name, {
@@ -92,7 +133,51 @@
         });
       }
     }
+  };
+  const scanPerformance = () => {
+    for (const e of performance.getEntriesByType('resource')) {
+      addResource(e);
+    }
+  };
+  scanPerformance();
+  // the timing buffer drops entries on heavy pages and fonts may (re)load at
+  // any time; the observer delivers every font load from here on
+  try {
+    new PerformanceObserver(list => {
+      for (const e of list.getEntries()) {
+        addResource(e);
+      }
+      sendBioUpdate();
+    }).observe({
+      type: 'resource',
+      buffered: true
+    });
   }
+  catch (e) {}
+
+  // JS-constructed faces whose family has no bio coverage (no @font-face
+  // rule, no resource entry) still name the family they expose; their URL
+  // is not recoverable from the API
+  const scanFaces = () => {
+    for (const face of document.fonts) {
+      const family = face.family.replace(/['"]/g, '').trim();
+      if (family === '' || family === 'notdef' || [...bio.values()].some(o => o.fontFamily === family)) {
+        continue;
+      }
+      bio.set('face:' + [family, face.weight, face.style].join('\u0000'), {
+        fontFamily: family,
+        weight: face.weight,
+        style: face.style,
+        display: face.display
+      });
+    }
+  };
+  scanFaces();
+  // late-constructed JS faces (dynamic pages) surface here
+  document.fonts.addEventListener('loadingdone', () => {
+    scanFaces();
+    sendBioUpdate();
+  });
 
   // the report is sent before the slow phases run; their gains are pushed later
   const initial = new Map(bio);
@@ -115,6 +200,11 @@
     }
   };
   const runAsync = async () => {
+    // late loads (dynamic pages re-fetch fonts as you scroll or type) are
+    // caught by re-scanning; the gains are pushed to the inspector
+    scanPerformance();
+    scanFaces();
+    sendBioUpdate();
     await enrich();
     sendBioUpdate();
     await attribute();

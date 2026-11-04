@@ -317,15 +317,14 @@ const woff2Names = async buffer => {
   return info;
 };
 
-const resolveFont = async (fontUrl, signal) => {
+const resolveFont = async fontUrl => {
   if (fontNameCache.has(fontUrl)) {
     return fontNameCache.get(fontUrl);
   }
   const promise = (async () => {
     const response = await fetch(fontUrl, {
       credentials: 'omit',
-      cache: 'force-cache',
-      signal
+      cache: 'force-cache'
     });
     if (response.ok === false) {
       throw Error('HTTP ' + response.status);
