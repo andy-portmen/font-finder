@@ -330,6 +330,11 @@
 
   chrome.storage.local.get({
     userFonts: [],
+    // Fonts commonly faked by Windows browsers (e.g. Helvetica -> Helvetica, Times -> Times New Roman);
+    // consulted when the entire inspected stack falls back to the system default
+    pretendedFonts: [
+      'Arial', 'Times New Roman', 'Courier New', 'Tahoma', 'Lucida Sans Unicode', 'Segoe UI'
+    ],
     baseFonts: [
       'Helvetica', 'Times New Roman', 'Times', 'Microsoft YaHei', 'Microsoft YaHei UI', 'monospace', 'Sans Serif',
       'Serif', 'Helvetica Neue', 'Helvetica CY', 'Songti SC', 'Zapfino', 'Zapf Dingbats', 'Zapf Chancery', 'Verdana',
@@ -612,6 +617,11 @@
         // what the canvas draws when no family exists; the pure system fallback
         // for this exact string, size, lang, weight and stretch
         const pure = key(str, size, '__ff_none__', lang, prefix);
+        // the stack itself fell back (no family resolved): the reference render
+        // IS the pure system default (like Microsoft YaHei on macOS rendering
+        // Times); pure-drawing candidates are then the fonts actually doing the
+        // rendering, not pretend-free misses
+        const refIsPure = same(ref, pure);
 
         // ink-extent snapshots per font-family, cached for the scan; identical
         // pixels imply identical ink, so differing metrics rule a family out
@@ -641,6 +651,7 @@
         // the first matching family is the reported one; every other family that
         // renders identically is one the browser may be pretending with
         const matches = [];
+        const pretenders = [];
         for (const font of list) {
           // ruled-out candidates must not rasterize: run the cheap prefilter
           // before the full draw
@@ -648,16 +659,35 @@
             continue;
           }
           const draw = key(str, size, font, lang, prefix);
+          if (same(draw, ref) === false) {
+            continue;
+          }
           // own glyphs: a draw identical to the fallback-of-nothing means the
           // family rendered nothing itself; the bitmap came from the shared
-          // fallback, so it is neither a match nor a pretender
-          if (same(draw, ref) &&
-            same(draw, pure) === false &&
-            known(font)) {
-            matches.push(font);
+          // fallback, so it is neither a match nor a pretender — except when
+          // the stack itself fell back, where the pure render is exactly what
+          // the system is drawing with (Times for Microsoft YaHei on macOS)
+          if (refIsPure === false && same(draw, pure)) {
+            continue;
+          }
+          // is a known font: renders differently from the notdef-only fallback
+          if (known(font)) {
+            // when the stack fell back, every identical render is the same
+            // system default; the first known candidate names it (Times for
+            // Microsoft YaHei on macOS) and the rest are aliases of the same
+            // physical font, so only the first becomes the rendered font
+            if (refIsPure === false || matches.length === 0) {
+              matches.push(font);
+            }
+          }
+          // an unknown family rendered entirely by the shared fallback; when the
+          // stack fell back, the hardcoded commonly-pretended families are how
+          // the browser may be faking support
+          else if (refIsPure && prefs.pretendedFonts.includes(font)) {
+            pretenders.push(font);
           }
         }
-        return matches.length ? matches : ['System Default'];
+        return matches.length ? [...matches, ...pretenders] : ['System Default'];
       };
       // split into segments; complex elements are decomposed per descendant
       // text node so each child keeps its own font identity, while simple
